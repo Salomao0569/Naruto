@@ -96,24 +96,6 @@
             margin-top: 20px;
         }
         
-        .laudo-controls {
-            margin-bottom: 10px;
-        }
-        
-        .laudo-controls button {
-            padding: 5px 10px;
-            background-color: #f2f2f2;
-            color: #333;
-            border: 1px solid #ddd;
-            margin-right: 5px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        
-        .laudo-controls button:hover {
-            background-color: #e0e0e0;
-        }
-        
         /* Estilos para a interface de valvas */
         .valvas-container {
             background-color: #f9f9f9;
@@ -260,100 +242,6 @@
             padding-top: 0;
             padding-bottom: 0;
             border: none;
-        }
-        
-        .assinatura {
-            margin-top: 60px;
-            text-align: center;
-        }
-        .linha-assinatura {
-            display: inline-block;
-            width: 200px;
-            border-top: 1px solid #000;
-            margin: 0 auto;
-            text-align: center;
-            padding-top: 5px;
-            font-size: 9pt;
-        }
-        .rodape {
-            margin-top: 10px;
-            font-size: 8pt;
-            text-align: center;
-            color: #666;
-        }
-        .opiniao {
-            font-weight: bold;
-            margin-top: 0.8em;
-            color: #2c3e50;
-            border-top: 1px solid #ddd;
-            padding-top: 0.5em;
-        }
-        h2 {
-            font-size: 14pt;
-            margin-top: 10px;
-        }
-        .info-paciente {
-            margin-bottom: 25px;
-            font-size: 12pt;
-            line-height: 1.4;
-            padding: 10px;
-            background-color: #f9f9f9;
-            border: 1px solid #eee;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            margin-bottom: 15px;
-            font-size: 10pt;
-        }
-        table, th, td {
-            border: 1px solid #ddd;
-        }
-        th, td {
-            padding: 6px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-            width: 25%;
-        }
-        .laudo-texto {
-            margin-top: 15px;
-            padding: 10px;
-            line-height: 1.4;
-            font-size: 11pt;
-            border: 1px solid #ddd;
-            background-color: #f9f9f9;
-        }
-        .laudo-texto p {
-            margin: 0.6em 0;
-        }
-        .assinatura {
-            margin-top: 60px;
-            text-align: center;
-        }
-        .linha-assinatura {
-            display: inline-block;
-            width: 200px;
-            border-top: 1px solid #000;
-            margin: 0 auto;
-            text-align: center;
-            padding-top: 5px;
-            font-size: 9pt;
-        }
-        .rodape {
-            margin-top: 10px;
-            font-size: 8pt;
-            text-align: center;
-            color: #666;
-        }
-        .opiniao {
-            font-weight: bold;
-            margin-top: 0.8em;
-            color: #2c3e50;
-            border-top: 1px solid #ddd;
-            padding-top: 0.5em;
         }
     </style>
 </head>
@@ -720,12 +608,6 @@
         <!-- Área do Laudo -->
         <div class="laudo-container" id="laudoArea" style="display:none;">
             <h2>Laudo Médico</h2>
-            <div class="button-group laudo-controls">
-                <button onclick="formatarTexto('bold')" title="Negrito"><strong>N</strong></button>
-                <button onclick="formatarTexto('italic')" title="Itálico"><em>I</em></button>
-                <button onclick="formatarTexto('underline')" title="Sublinhado"><u>S</u></button>
-                <button onclick="limparFormatacao()" title="Limpar formatação">Limpar</button>
-            </div>
             <textarea id="laudoTexto" rows="20"></textarea>
             <div class="button-group">
                 <button onclick="copiarLaudo()">Copiar Laudo</button>
@@ -1745,60 +1627,6 @@ Obs: A correta interpretação do resultado do exame depende de outros dados do 
         // Função para imprimir o laudo
         function imprimirLaudo() {
             const conteudoLaudo = document.getElementById('laudoTexto').value;
-            
-            // Coletar dados para a tabela
-            const dados = {
-                nome: document.getElementById('nome').value || 'Não informado',
-                idade: calcularIdade(document.getElementById('dataNascimento').value) || 'Não informada',
-                sexo: document.getElementById('sexo').value === 'M' ? 'Masculino' : 'Feminino',
-                aorta: document.getElementById('aorta').value || '-',
-                atrioEsquerdo: document.getElementById('atrioEsquerdo').value || '-',
-                ddve: document.getElementById('diamDiastFinalVE').value || '-',
-                dsve: document.getElementById('diamSistFinal').value || '-',
-                septo: document.getElementById('espDiastSepto').value || '-',
-                ppve: document.getElementById('espDiastPPVE').value || '-',
-                fe: document.getElementById('resultadoFE') ? document.getElementById('resultadoFE').textContent : '-',
-                massa: document.getElementById('resultadoMassaVE') ? document.getElementById('resultadoMassaVE').textContent : '-',
-                volumeAE: document.getElementById('volumeAE').value || '-'
-            };
-            
-            // Dados para a segunda linha da tabela
-            const funcaoDiastolica = obterDadosFuncaoDiastolica();
-            
-            // Adicionar informações dos cálculos
-            const calculos = obterDadosCalculados();
-            
-            // Formatar o texto do laudo para HTML
-            // Primeiro substituímos as tags já existentes (se houver) por placeholders temporários
-            const textoFormatado = conteudoLaudo
-                .replace(/<strong>(.*?)<\/strong>/g, '###BOLD###$1###BOLD###')
-                .replace(/<em>(.*?)<\/em>/g, '###ITALIC###$1###ITALIC###')
-                .replace(/<u>(.*?)<\/u>/g, '###UNDERLINE###$1###UNDERLINE###');
-                
-            // Depois convertemos quebras de linha para <p> para melhor formatação
-            const paragrafos = textoFormatado.split('\n\n');
-            let htmlParagrafos = '';
-
-            // Processamos parágrafo por parágrafo para detectar a seção OPINIÃO
-            paragrafos.forEach(paragrafo => {
-                // Processar quebras de linha simples dentro do parágrafo
-                const linhas = paragrafo.split('\n');
-                const htmlLinhas = linhas.join('<br>');
-                
-                // Restaurar formatações
-                let conteudoHTML = htmlLinhas
-                    .replace(/###BOLD###(.*?)###BOLD###/g, '<strong>$1</strong>')
-                    .replace(/###ITALIC###(.*?)###ITALIC###/g, '<em>$1</em>')
-                    .replace(/###UNDERLINE###(.*?)###UNDERLINE###/g, '<u>$1</u>');
-                
-                // Verificar se é a seção OPINIÃO
-                if (conteudoHTML.includes("OPINIÃO") || conteudoHTML.includes("OPINIAO")) {
-                    htmlParagrafos += '<p class="opiniao">' + conteudoHTML + '</p>';
-                } else {
-                    htmlParagrafos += '<p>' + conteudoHTML + '</p>';
-                }
-            });
-            
             const janelaImpressao = window.open('', '_blank');
             
             janelaImpressao.document.write(`
@@ -1807,231 +1635,28 @@ Obs: A correta interpretação do resultado do exame depende de outros dados do 
                 <head>
                     <title>Laudo Ecocardiograma</title>
                     <style>
-                        @media print {
-                            @page {
-                                size: A4;
-                                margin: 0.5cm;
-                            }
-                            body {
-                                -webkit-print-color-adjust: exact !important;
-                                print-color-adjust: exact !important;
-                            }
-                        }
                         body {
                             font-family: Arial, sans-serif;
-                            max-width: 800px;
-                            margin: 0 auto;
-                            padding: 10px;
-                            font-size: 11pt;
-                        }
-                        h1, h2 {
-                            margin-top: 10px;
-                            margin-bottom: 10px;
-                            color: #2c3e50;
-                            text-align: center;
+                            line-height: 1.5;
+                            margin: 20px;
                         }
                         h1 {
-                            font-size: 16pt;
-                        }
-                        h2 {
-                            font-size: 14pt;
-                            margin-top: 10px;
-                        }
-                        .info-paciente {
-                            margin-bottom: 25px;
-                            font-size: 12pt;
-                            line-height: 1.4;
-                            padding: 10px;
-                            background-color: #f9f9f9;
-                            border: 1px solid #eee;
-                        }
-                        table {
-                            width: 100%;
-                            border-collapse: collapse;
-                            margin-top: 10px;
-                            margin-bottom: 15px;
-                            font-size: 10pt;
-                        }
-                        table, th, td {
-                            border: 1px solid #ddd;
-                        }
-                        th, td {
-                            padding: 6px;
-                            text-align: left;
-                        }
-                        th {
-                            background-color: #f2f2f2;
-                            width: 25%;
-                        }
-                        .laudo-texto {
-                            margin-top: 15px;
-                            padding: 10px;
-                            line-height: 1.4;
-                            font-size: 11pt;
-                            border: 1px solid #ddd;
-                            background-color: #f9f9f9;
-                        }
-                        .laudo-texto p {
-                            margin: 0.6em 0;
-                        }
-                        .assinatura {
-                            margin-top: 60px;
                             text-align: center;
                         }
-                        .linha-assinatura {
-                            display: inline-block;
-                            width: 200px;
-                            border-top: 1px solid #000;
-                            margin: 0 auto;
-                            text-align: center;
-                            padding-top: 5px;
-                            font-size: 9pt;
-                        }
-                        .rodape {
-                            margin-top: 10px;
-                            font-size: 8pt;
-                            text-align: center;
-                            color: #666;
-                        }
-                        .opiniao {
-                            font-weight: bold;
-                            margin-top: 0.8em;
-                            color: #2c3e50;
-                            border-top: 1px solid #ddd;
-                            padding-top: 0.5em;
+                        pre {
+                            font-family: Arial, sans-serif;
+                            white-space: pre-wrap;
                         }
                     </style>
                 </head>
                 <body>
-                    <h1>ECOCARDIOGRAMA TRANSTORÁCICO</h1>
-                    
-                    <div class="info-paciente">
-                        <strong>Nome:</strong> ${dados.nome} &nbsp;&nbsp; 
-                        <strong>Idade:</strong> ${dados.idade} &nbsp;&nbsp; 
-                        <strong>Sexo:</strong> ${dados.sexo} &nbsp;&nbsp;
-                        <strong>Data:</strong> ${new Date().toLocaleDateString('pt-BR')}
-                    </div>
-                    
-                    <h2>Resultados</h2>
-                    
-                    <table>
-                        <tr>
-                            <th>Parâmetro</th>
-                            <th>Valor</th>
-                            <th>Parâmetro</th>
-                            <th>Valor</th>
-                        </tr>
-                        <tr>
-                            <td>Aorta</td>
-                            <td>${dados.aorta} mm</td>
-                            <td>Átrio Esquerdo</td>
-                            <td>${dados.atrioEsquerdo} mm</td>
-                        </tr>
-                        <tr>
-                            <td>Diâm. Diast. Final do VE</td>
-                            <td>${dados.ddve} mm</td>
-                            <td>Diâm. Sist. Final</td>
-                            <td>${dados.dsve} mm</td>
-                        </tr>
-                        <tr>
-                            <td>Esp. Diast. do Septo</td>
-                            <td>${dados.septo} mm</td>
-                            <td>Esp. Diast. da PPVE</td>
-                            <td>${dados.ppve} mm</td>
-                        </tr>
-                        <tr>
-                            <td>Volume Diast. Final</td>
-                            <td>${calculos.volumeDiastFinal || '-'} ml</td>
-                            <td>Volume Sist. Final</td>
-                            <td>${calculos.volumeSistolico || '-'} ml</td>
-                        </tr>
-                        <tr>
-                            <td>Fração de Ejeção</td>
-                            <td>${calculos.fracaoEjecao || dados.fe}</td>
-                            <td>Massa do VE</td>
-                            <td>${calculos.massaVE || dados.massa}</td>
-                        </tr>
-                    </table>
-                    
-                    <h2>Laudo Médico</h2>
-                    <div class="laudo-texto">${htmlParagrafos}</div>
-                    
-                    <div class="assinatura">
-                        <div class="linha-assinatura">
-                            Médico(a) Responsável
-                        </div>
-                    </div>
-                    
+                    <pre>${conteudoLaudo}</pre>
                 </body>
                 </html>
             `);
             
             janelaImpressao.document.close();
             janelaImpressao.print();
-        }
-        
-        // Função para obter dados calculados da tabela de resultados
-        function obterDadosCalculados() {
-            return {
-                volumeDiastFinal: document.getElementById('result_volumeDiastFinal') ? document.getElementById('result_volumeDiastFinal').textContent.replace(' ml', '') : null,
-                volumeSistolico: document.getElementById('result_volumeSistolico') ? document.getElementById('result_volumeSistolico').textContent.replace(' ml', '') : null,
-                massaVE: document.getElementById('result_massaVE') ? document.getElementById('result_massaVE').textContent.replace(' g', '') : null,
-                indiceMassaVE: document.getElementById('result_indiceMassaVE') ? document.getElementById('result_indiceMassaVE').textContent.replace(' g/m²', '') : null,
-                fracaoEjecao: document.getElementById('result_fracaoEjecao') ? document.getElementById('result_fracaoEjecao').textContent : null,
-                percentEncurtCavidade: document.getElementById('result_percentEncurtCavidade') ? document.getElementById('result_percentEncurtCavidade').textContent : null,
-                espRelaParede: document.getElementById('result_espRelaParede') ? document.getElementById('result_espRelaParede').textContent : null
-            };
-        }
-        
-        // Função auxiliar para coletar dados da função diastólica
-        function obterDadosFuncaoDiastolica() {
-            const ondaE = document.getElementById('ondaE').value || '-';
-            const ondaA = document.getElementById('ondaA').value || '-';
-            const tdiSeptal = document.getElementById('tdiSeptal').value || '-';
-            const tdiLateral = document.getElementById('tdiLateral').value || '-';
-            const velocidadeRT = document.getElementById('velocidadeRT').value || '-';
-            
-            // Calcular relação E/A
-            let relacaoEA = '-';
-            if (ondaE && ondaA && ondaA !== '0') {
-                relacaoEA = (parseFloat(ondaE) / parseFloat(ondaA)).toFixed(2);
-            }
-            
-            // Calcular relação E/e'
-            let relacaoEe = '-';
-            if (ondaE && (tdiSeptal || tdiLateral)) {
-                const tdiMedio = tdiSeptal && tdiLateral ? 
-                    (parseFloat(tdiSeptal) + parseFloat(tdiLateral)) / 2 : 
-                    (parseFloat(tdiSeptal || tdiLateral));
-                    
-                if (tdiMedio !== 0) {
-                    relacaoEe = (parseFloat(ondaE) / tdiMedio).toFixed(2);
-                }
-            }
-            
-            return {
-                ondaE,
-                ondaA,
-                relacaoEA,
-                relacaoEe,
-                velocidadeRT
-            };
-        }
-        
-        // Função auxiliar para calcular idade a partir da data de nascimento
-        function calcularIdade(dataNascimento) {
-            if (!dataNascimento) return '';
-            
-            const hoje = new Date();
-            const nascimento = new Date(dataNascimento);
-            let idade = hoje.getFullYear() - nascimento.getFullYear();
-            const m = hoje.getMonth() - nascimento.getMonth();
-            
-            if (m < 0 || (m === 0 && hoje.getDate() < nascimento.getDate())) {
-                idade--;
-            }
-            
-            return idade + ' anos';
         }
         
         // Função para alternar entre as abas
@@ -2156,47 +1781,6 @@ Obs: A correta interpretação do resultado do exame depende de outros dados do 
         // Função auxiliar para capitalizar a primeira letra
         function capitalize(string) {
             return string.charAt(0).toUpperCase() + string.slice(1);
-        }
-        
-        // Funções para formatação do texto do laudo
-        function formatarTexto(tipo) {
-            const laudoTexto = document.getElementById('laudoTexto');
-            const selecaoInicio = laudoTexto.selectionStart;
-            const selecaoFim = laudoTexto.selectionEnd;
-            const textoSelecionado = laudoTexto.value.substring(selecaoInicio, selecaoFim);
-            
-            if (textoSelecionado) {
-                let textoFormatado = '';
-                
-                switch(tipo) {
-                    case 'bold':
-                        textoFormatado = `<strong>${textoSelecionado}</strong>`;
-                        break;
-                    case 'italic':
-                        textoFormatado = `<em>${textoSelecionado}</em>`;
-                        break;
-                    case 'underline':
-                        textoFormatado = `<u>${textoSelecionado}</u>`;
-                        break;
-                    default:
-                        textoFormatado = textoSelecionado;
-                }
-                
-                const textoAntes = laudoTexto.value.substring(0, selecaoInicio);
-                const textoDepois = laudoTexto.value.substring(selecaoFim);
-                
-                laudoTexto.value = textoAntes + textoFormatado + textoDepois;
-            }
-        }
-
-        function limparFormatacao() {
-            const laudoTexto = document.getElementById('laudoTexto');
-            const textoAtual = laudoTexto.value;
-            
-            // Remove todas as tags HTML
-            const textoSemFormatacao = textoAtual.replace(/<[^>]*>/g, '');
-            
-            laudoTexto.value = textoSemFormatacao;
         }
         
         // Inicializar os status das valvas
