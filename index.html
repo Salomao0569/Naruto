@@ -611,6 +611,7 @@
             <textarea id="laudoTexto" rows="20"></textarea>
             <div class="button-group">
                 <button class="button-secondary" onclick="imprimirLaudo()">Imprimir</button>
+                <button class="button-secondary" onclick="salvarPDFLocalmente()">Salvar PDF</button>
             </div>
         </div>
     </div>
@@ -1836,6 +1837,68 @@ Obs: A correta interpretação do resultado do exame depende de outros dados do 
                 content.classList.add('collapsed');
             }
         });
+    </script>
+    
+    <!-- Adicionar bibliotecas para geração de PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <script>
+        // Função para gerar e salvar o PDF no dispositivo do usuário
+        function salvarPDFLocalmente() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Obter dados do paciente
+            const nome = document.getElementById('nome').value || 'Paciente';
+            const dataNascimento = document.getElementById('dataNascimento').value || '';
+            const dataFormatada = dataNascimento ? new Date(dataNascimento).toLocaleDateString('pt-BR') : '';
+            
+            // Obter o texto do laudo
+            const textoLaudo = document.getElementById('laudoTexto').value;
+            const linhas = textoLaudo.split('\n');
+            
+            // Configurar o documento
+            doc.setFont('helvetica');
+            doc.setFontSize(18);
+            doc.text('LAUDO DE ECOCARDIOGRAMA', 105, 20, { align: 'center' });
+            
+            // Informações do paciente
+            doc.setFontSize(12);
+            doc.text(`Nome: ${nome}`, 20, 40);
+            if (dataFormatada) {
+                doc.text(`Data de Nascimento: ${dataFormatada}`, 20, 50);
+            }
+            doc.text(`Data do Exame: ${new Date().toLocaleDateString('pt-BR')}`, 20, 60);
+            
+            // Adicionar o conteúdo do laudo
+            doc.setFontSize(11);
+            let y = 80; // Posição Y inicial para o conteúdo
+            
+            for (let i = 0; i < linhas.length; i++) {
+                // Verificar se chegou ao final da página
+                if (y > 270) {
+                    doc.addPage();
+                    y = 20; // Recomeçar do topo
+                }
+                
+                // Adicionar a linha ao PDF
+                doc.text(linhas[i], 20, y);
+                y += 7; // Mover para a próxima linha
+            }
+            
+            // Adicionar rodapé
+            const totalPages = doc.getNumberOfPages();
+            for (let i = 1; i <= totalPages; i++) {
+                doc.setPage(i);
+                doc.setFontSize(10);
+                doc.text(`Página ${i} de ${totalPages}`, 105, 290, { align: 'center' });
+            }
+            
+            // Salvar o PDF
+            const nomeArquivo = `Laudo_${nome.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+            doc.save(nomeArquivo);
+        }
     </script>
 </body>
 </html> 
