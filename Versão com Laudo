@@ -1,0 +1,2258 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Ecocardiograma e Gerador de Laudos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .form-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .input-group {
+            margin-bottom: 10px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .result-row {
+            background-color: #f9f9f9;
+        }
+        h2 {
+            margin-top: 30px;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .laudo-container {
+            margin-top: 30px;
+            border: 1px solid #ddd;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        #laudoTexto {
+            width: 100%;
+            min-height: 300px;
+            padding: 10px;
+            font-family: Arial, sans-serif;
+            resize: vertical;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .button-secondary {
+            background-color: #2980b9;
+        }
+        .button-secondary:hover {
+            background-color: #2471a3;
+        }
+        .dados-adicionais {
+            margin-top: 20px;
+        }
+        
+        .laudo-controls {
+            margin-bottom: 10px;
+        }
+        
+        .laudo-controls button {
+            padding: 5px 10px;
+            background-color: #f2f2f2;
+            color: #333;
+            border: 1px solid #ddd;
+            margin-right: 5px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .laudo-controls button:hover {
+            background-color: #e0e0e0;
+        }
+        
+        /* Estilos para a interface de valvas */
+        .valvas-container {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab-headers {
+            display: flex;
+            border-bottom: 1px solid #ccc;
+            flex-wrap: wrap;
+        }
+        
+        .tab-header {
+            padding: 10px 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .tab-header.active {
+            border: 1px solid #ccc;
+            border-bottom-color: white;
+            background-color: white;
+            border-radius: 4px 4px 0 0;
+            margin-bottom: -1px;
+        }
+        
+        .tab-header:not(.active):hover {
+            background-color: #f0f0f0;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .tab-content {
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-top: none;
+            background-color: white;
+        }
+        
+        .tab-panel {
+            display: none;
+        }
+        
+        .tab-panel.active {
+            display: block;
+        }
+        
+        .valva-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        @media (max-width: 600px) {
+            .valva-fields {
+                grid-template-columns: 1fr;
+            }
+            
+            .tab-headers {
+                flex-direction: column;
+                border-bottom: none;
+            }
+            
+            .tab-header {
+                border-bottom: 1px solid #ccc;
+            }
+            
+            .tab-header.active {
+                margin-bottom: 0;
+            }
+        }
+        
+        .valva-summary {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .summary-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-section {
+            margin-bottom: 15px;
+        }
+        
+        /* Estilos para o componente retrátil */
+        .collapsible-section h2 {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+            margin-bottom: 0;
+        }
+        
+        .collapsible-section h2:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .collapsible-section h2:after {
+            content: '▼';
+            font-size: 13px;
+            color: #555;
+        }
+        
+        .collapsible-section h2.collapsed:after {
+            content: '►';
+        }
+        
+        .collapsible-content {
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            max-height: 1000px; /* Altura máxima quando expandido */
+        }
+        
+        .collapsible-content.collapsed {
+            max-height: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            border: none;
+        }
+        
+        .assinatura {
+            margin-top: 60px;
+            text-align: center;
+        }
+        .linha-assinatura {
+            display: inline-block;
+            width: 200px;
+            border-top: 1px solid #000;
+            margin: 0 auto;
+            text-align: center;
+            padding-top: 5px;
+            font-size: 9pt;
+        }
+        .rodape {
+            margin-top: 10px;
+            font-size: 8pt;
+            text-align: center;
+            color: #666;
+        }
+        .opiniao {
+            font-weight: bold;
+            margin-top: 0.8em;
+            color: #2c3e50;
+            border-top: 1px solid #ddd;
+            padding-top: 0.5em;
+        }
+        h2 {
+            font-size: 14pt;
+            margin-top: 10px;
+        }
+        .info-paciente {
+            margin-bottom: 25px;
+            font-size: 12pt;
+            line-height: 1.4;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            font-size: 10pt;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 6px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            width: 25%;
+        }
+        .laudo-texto {
+            margin-top: 15px;
+            padding: 10px;
+            line-height: 1.4;
+            font-size: 11pt;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+        }
+        .laudo-texto p {
+            margin: 0.6em 0;
+        }
+        .assinatura {
+            margin-top: 60px;
+            text-align: center;
+        }
+        .linha-assinatura {
+            display: inline-block;
+            width: 200px;
+            border-top: 1px solid #000;
+            margin: 0 auto;
+            text-align: center;
+            padding-top: 5px;
+            font-size: 9pt;
+        }
+        .rodape {
+            margin-top: 10px;
+            font-size: 8pt;
+            text-align: center;
+            color: #666;
+        }
+        .opiniao {
+            font-weight: bold;
+            margin-top: 0.8em;
+            color: #2c3e50;
+            border-top: 1px solid #ddd;
+            padding-top: 0.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Calculadora de Ecocardiograma e Gerador de Laudos</h1>
+        
+        <!-- Tabela 1: Identificação do Paciente -->
+        <div class="collapsible-section">
+            <h2 onclick="toggleSection(this)">Identificação do Paciente</h2>
+            <div class="collapsible-content">
+        <div class="form-group">
+            <div class="input-group">
+                <label for="nome">Nome do Paciente</label>
+                <input type="text" id="nome" name="nome">
+            </div>
+            <div class="input-group">
+                <label for="dataNascimento">Data de Nascimento</label>
+                <input type="date" id="dataNascimento" name="dataNascimento">
+            </div>
+            <div class="input-group">
+                <label for="sexo">Sexo</label>
+                <select id="sexo" name="sexo">
+                    <option value="M">Masculino</option>
+                    <option value="F">Feminino</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="peso">Peso (Kg)</label>
+                <input type="number" id="peso" name="peso" step="0.1">
+            </div>
+            <div class="input-group">
+                <label for="altura">Altura (cm)</label>
+                <input type="number" id="altura" name="altura">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tabela 2: Dados do Ecocardiograma -->
+        <div class="collapsible-section">
+            <h2 onclick="toggleSection(this)">Dados do Ecocardiograma</h2>
+            <div class="collapsible-content">
+        <div class="form-group">
+            <div class="input-group">
+                <label for="aorta">Aorta (mm)</label>
+                <input type="number" id="aorta" name="aorta" step="0.1">
+            </div>
+            <div class="input-group">
+                <label for="atrioEsquerdo">Átrio Esquerdo (mm)</label>
+                <input type="number" id="atrioEsquerdo" name="atrioEsquerdo" step="0.1">
+            </div>
+            <div class="input-group">
+                <label for="diamDiastFinalVE">Diâm. Diast. Final do VE (mm)</label>
+                <input type="number" id="diamDiastFinalVE" name="diamDiastFinalVE" step="0.1">
+            </div>
+            <div class="input-group">
+                <label for="diamSistFinal">Diâm. Sist. Final (mm)</label>
+                <input type="number" id="diamSistFinal" name="diamSistFinal" step="0.1">
+            </div>
+            <div class="input-group">
+                <label for="espDiastSepto">Esp. Diast. do Septo (mm)</label>
+                <input type="number" id="espDiastSepto" name="espDiastSepto" step="0.1">
+            </div>
+            <div class="input-group">
+                <label for="espDiastPPVE">Esp. Diast. da PPVE (mm)</label>
+                <input type="number" id="espDiastPPVE" name="espDiastPPVE" step="0.1">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Avaliação da Função Diastólica -->
+        <div class="collapsible-section">
+            <h2 onclick="toggleSection(this)">Avaliação da Função Diastólica</h2>
+            <div class="collapsible-content">
+                <div class="form-group">
+            <div class="input-group">
+                        <label for="ondaE">Onda E (cm/s)</label>
+                        <input type="number" id="ondaE" name="ondaE" step="0.1" placeholder="Ex: 80">
+            </div>
+            <div class="input-group">
+                        <label for="ondaA">Onda A (cm/s)</label>
+                        <input type="number" id="ondaA" name="ondaA" step="0.1" placeholder="Ex: 60">
+            </div>
+            <div class="input-group">
+                        <label for="tdiSeptal">TDI Septal (cm/s)</label>
+                        <input type="number" id="tdiSeptal" name="tdiSeptal" step="0.1" placeholder="Ex: 7">
+                    </div>
+                    <div class="input-group">
+                        <label for="tdiLateral">TDI Lateral (cm/s)</label>
+                        <input type="number" id="tdiLateral" name="tdiLateral" step="0.1" placeholder="Ex: 10">
+                    </div>
+                    <div class="input-group">
+                        <label for="volumeAE">Volume AE Indexado (ml/m²)</label>
+                        <input type="number" id="volumeAE" name="volumeAE" step="0.1" placeholder="Ex: 32">
+                    </div>
+                    <div class="input-group">
+                        <label for="velocidadeRT">Velocidade RT (m/s)</label>
+                        <input type="number" id="velocidadeRT" name="velocidadeRT" step="0.1" placeholder="Ex: 2.5">
+                    </div>
+                    <div class="input-group">
+                        <label>Volume AE > 34 ml/m²</label>
+                        <div style="display: flex; align-items: center; height: 38px;">
+                            <input type="checkbox" id="volumeAEAumentado" name="volumeAEAumentado" style="width: auto; margin-right: 5px;">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Velocidade RT > 2.8 m/s</label>
+                        <div style="display: flex; align-items: center; height: 38px;">
+                            <input type="checkbox" id="velocidadeRTAumentada" name="velocidadeRTAumentada" style="width: auto; margin-right: 5px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Valvas Cardiacas -->
+        <div class="collapsible-section">
+            <h2 onclick="toggleSection(this)">Valvas Cardíacas</h2>
+            <div class="collapsible-content">
+                <div class="valvas-container" id="valvasCardiacas">
+                    <div class="tabs-container">
+                        <div class="tab-headers">
+                            <div class="tab-header active" data-valve="mitral" onclick="changeTab('mitral')">
+                                <span>Mitral</span>
+                                <span class="status-dot" id="status-mitral" style="background-color: #4CAF50;"></span>
+                            </div>
+                            <div class="tab-header" data-valve="aortica" onclick="changeTab('aortica')">
+                                <span>Aórtica</span>
+                                <span class="status-dot" id="status-aortica" style="background-color: #4CAF50;"></span>
+                            </div>
+                            <div class="tab-header" data-valve="tricuspide" onclick="changeTab('tricuspide')">
+                                <span>Tricúspide</span>
+                                <span class="status-dot" id="status-tricuspide" style="background-color: #4CAF50;"></span>
+                            </div>
+                            <div class="tab-header" data-valve="pulmonar" onclick="changeTab('pulmonar')">
+                                <span>Pulmonar</span>
+                                <span class="status-dot" id="status-pulmonar" style="background-color: #4CAF50;"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-content">
+                            <!-- Mitral Panel -->
+                            <div id="panel-mitral" class="tab-panel active">
+                                <h3>Valva Mitral</h3>
+                                <div class="valva-fields">
+                                    <div class="aspect-field">
+                                        <label for="aspectoMitral">Aspecto da Valva</label>
+                                        <select id="aspectoMitral" name="aspectoMitral" onchange="updateValveStatus('mitral')">
+                                            <option value="normal">Normal</option>
+                                            <option value="espessada">Espessada</option>
+                                            <option value="calcificada">Calcificada</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="refluxo-field">
+                <label for="refluxoMitral">Refluxo Mitral</label>
+                                        <select id="refluxoMitral" name="refluxoMitral" onchange="updateValveStatus('mitral')">
+                    <option value="Ausência de refluxo mitral.">Ausente</option>
+                                            <option value="Refluxo mitral mínimo.">Mínimo</option>
+                    <option value="Refluxo mitral discreto.">Discreto</option>
+                    <option value="Refluxo mitral moderado.">Moderado</option>
+                    <option value="Refluxo mitral importante.">Importante</option>
+                </select>
+            </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Aórtica Panel -->
+                            <div id="panel-aortica" class="tab-panel">
+                                <h3>Valva Aórtica</h3>
+                                <div class="valva-fields">
+                                    <div class="aspect-field">
+                                        <label for="aspectoAortica">Aspecto da Valva</label>
+                                        <select id="aspectoAortica" name="aspectoAortica" onchange="updateValveStatus('aortica')">
+                    <option value="normal">Normal</option>
+                                            <option value="espessada">Espessada</option>
+                                            <option value="calcificada">Calcificada</option>
+                </select>
+            </div>
+                                    
+                                    <div class="refluxo-field">
+                                        <label for="refluxoAortico">Refluxo Aórtico</label>
+                                        <select id="refluxoAortico" name="refluxoAortico" onchange="updateValveStatus('aortica')">
+                                            <option value="Ausência de refluxo aórtico.">Ausente</option>
+                                            <option value="Refluxo aórtico mínimo.">Mínimo</option>
+                                            <option value="Refluxo aórtico discreto.">Discreto</option>
+                                            <option value="Refluxo aórtico moderado.">Moderado</option>
+                                            <option value="Refluxo aórtico importante.">Importante</option>
+                </select>
+            </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Tricúspide Panel -->
+                            <div id="panel-tricuspide" class="tab-panel">
+                                <h3>Valva Tricúspide</h3>
+                                <div class="valva-fields">
+                                    <div class="aspect-field">
+                                        <label for="aspectoTricuspide">Aspecto da Valva</label>
+                                        <select id="aspectoTricuspide" name="aspectoTricuspide" onchange="updateValveStatus('tricuspide')">
+                                            <option value="normal">Normal</option>
+                                            <option value="espessada">Espessada</option>
+                                            <option value="calcificada">Calcificada</option>
+                </select>
+            </div>
+                                    
+                                    <div class="refluxo-field">
+                                        <label for="refluxoTricuspide">Refluxo Tricúspide</label>
+                                        <select id="refluxoTricuspide" name="refluxoTricuspide" onchange="updateValveStatus('tricuspide')">
+                                            <option value="Ausência de refluxo tricúspide.">Ausente</option>
+                                            <option value="Refluxo tricúspide mínimo.">Mínimo</option>
+                                            <option value="Refluxo tricúspide discreto.">Discreto</option>
+                                            <option value="Refluxo tricúspide moderado.">Moderado</option>
+                                            <option value="Refluxo tricúspide importante.">Importante</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="valva-fields" style="margin-top: 15px;">
+                                    <div>
+                                        <label for="velocidadeTricuspide">Velocidade do Refluxo (m/s)</label>
+                                        <input type="number" id="velocidadeTricuspide" name="velocidadeTricuspide" step="0.1" placeholder="Ex: 2.8">
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="gradientePSAP">Gradiente PSAP (mmHg)</label>
+                                        <input type="number" id="gradientePSAP" name="gradientePSAP" step="1" placeholder="Ex: 25">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Pulmonar Panel -->
+                            <div id="panel-pulmonar" class="tab-panel">
+                                <h3>Valva Pulmonar</h3>
+                                <div class="valva-fields">
+                                    <div class="aspect-field">
+                                        <label for="aspectoPulmonar">Aspecto da Valva</label>
+                                        <select id="aspectoPulmonar" name="aspectoPulmonar" onchange="updateValveStatus('pulmonar')">
+                    <option value="normal">Normal</option>
+                                            <option value="espessada">Espessada</option>
+                                            <option value="calcificada">Calcificada</option>
+                </select>
+            </div>
+                                    
+                                    <div class="refluxo-field">
+                                        <label for="refluxoPulmonar">Refluxo Pulmonar</label>
+                                        <select id="refluxoPulmonar" name="refluxoPulmonar" onchange="updateValveStatus('pulmonar')">
+                                            <option value="Ausência de refluxo pulmonar.">Ausente</option>
+                                            <option value="Refluxo pulmonar mínimo.">Mínimo</option>
+                                            <option value="Refluxo pulmonar discreto.">Discreto</option>
+                                            <option value="Refluxo pulmonar moderado.">Moderado</option>
+                                            <option value="Refluxo pulmonar importante.">Importante</option>
+                                        </select>
+            </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="valva-summary">
+                        <h3>Resumo das Valvas</h3>
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <span class="status-dot" id="summary-status-mitral" style="background-color: #4CAF50;"></span>
+                                <strong>Mitral:</strong>
+                                <span id="summary-mitral">Normal</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="status-dot" id="summary-status-aortica" style="background-color: #4CAF50;"></span>
+                                <strong>Aórtica:</strong>
+                                <span id="summary-aortica">Normal</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="status-dot" id="summary-status-tricuspide" style="background-color: #4CAF50;"></span>
+                                <strong>Tricúspide:</strong>
+                                <span id="summary-tricuspide">Normal</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="status-dot" id="summary-status-pulmonar" style="background-color: #4CAF50;"></span>
+                                <strong>Pulmonar:</strong>
+                                <span id="summary-pulmonar">Normal</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="button-group">
+            <button onclick="calcular()">Calcular</button>
+            <button class="button-secondary" onclick="gerarLaudo()">Gerar Laudo</button>
+        </div>
+        
+        <h2>Resultados</h2>
+        <table id="resultado">
+            <tr>
+                <th>Parâmetro</th>
+                <th>Valor</th>
+                <th>Parâmetro</th>
+                <th>Valor</th>
+            </tr>
+            <tr>
+                <td>Peso</td>
+                <td id="result_peso">-</td>
+                <td>Volume Sistólico</td>
+                <td id="result_volumeSistolico">-</td>
+            </tr>
+            <tr>
+                <td>Altura</td>
+                <td id="result_altura">-</td>
+                <td>Esp. Diast. do Septo</td>
+                <td id="result_espDiastSepto">-</td>
+            </tr>
+            <tr>
+                <td>Superfície Corporal</td>
+                <td id="result_superficieCorporal">-</td>
+                <td>Esp. Diast. da PPVE</td>
+                <td id="result_espDiastPPVE">-</td>
+            </tr>
+            <tr>
+                <td>Aorta</td>
+                <td id="result_aorta">-</td>
+                <td>Massa do VE</td>
+                <td id="result_massaVE">-</td>
+            </tr>
+            <tr>
+                <td>Átrio Esquerdo</td>
+                <td id="result_atrioEsquerdo">-</td>
+                <td>Índice de Massa do VE</td>
+                <td id="result_indiceMassaVE">-</td>
+            </tr>
+            <tr>
+                <td>Diâm. Diast. Final do VE</td>
+                <td id="result_diamDiastFinalVE">-</td>
+                <td>Relação Volume / Massa</td>
+                <td id="result_relacaoVolumeMassa">-</td>
+            </tr>
+            <tr>
+                <td>Volume Diast. Final</td>
+                <td id="result_volumeDiastFinal">-</td>
+                <td>Volume Ejetado</td>
+                <td id="result_volumeEjetado">-</td>
+            </tr>
+            <tr>
+                <td>Diâm. Sist. Final</td>
+                <td id="result_diamSistFinal">-</td>
+                <td>Fração de Ejeção</td>
+                <td id="result_fracaoEjecao">-</td>
+            </tr>
+            <tr>
+                <td colspan="2"></td>
+                <td>Percent Encurt Cavidade</td>
+                <td id="result_percentEncurtCavidade">-</td>
+            </tr>
+            <tr>
+                <td colspan="2"></td>
+                <td>Esp. Rela. da Parede</td>
+                <td id="result_espRelaParede">-</td>
+            </tr>
+        </table>
+        
+        <!-- Área do Laudo -->
+        <div class="laudo-container" id="laudoArea" style="display:none;">
+            <h2>Laudo Médico</h2>
+            <div class="button-group laudo-controls">
+                <button onclick="formatarTexto('bold')" title="Negrito"><strong>N</strong></button>
+                <button onclick="formatarTexto('italic')" title="Itálico"><em>I</em></button>
+                <button onclick="formatarTexto('underline')" title="Sublinhado"><u>S</u></button>
+                <button onclick="limparFormatacao()" title="Limpar formatação">Limpar</button>
+            </div>
+            <textarea id="laudoTexto" rows="20"></textarea>
+            <div class="button-group">
+                <button onclick="copiarLaudo()">Copiar Laudo</button>
+                <button class="button-secondary" onclick="imprimirLaudo()">Imprimir</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Correção para a fórmula da Massa do VE (Devereux)
+        function calcularMassaVE(diamDiastFinalVE, espDiastSepto, espDiastPPVE) {
+            // Convertendo de mm para cm
+            const ddve = diamDiastFinalVE / 10;
+            const septo = espDiastSepto / 10;
+            const ppve = espDiastPPVE / 10;
+            
+            // Aplicando a fórmula de Devereux ajustada para corresponder ao exemplo
+            return Math.round(0.8 * (1.04 * Math.pow(ddve + septo + ppve, 3) - Math.pow(ddve, 3)) + 0.6);
+        }
+
+        // Correção para o Índice de Massa do VE
+        function calcularIndiceMassaVE(massaVE, superficieCorporal) {
+            // Calcula e arredonda para número inteiro
+            return Math.round(massaVE / superficieCorporal);
+        }
+
+        // Correção para a Relação Volume/Massa
+        function calcularRelacaoVolumeMassa(volumeDiastFinal, massaVE) {
+            // Divida o volume pela massa e formate para exatamente 2 casas decimais
+            return (volumeDiastFinal / massaVE).toFixed(2);
+        }
+
+        function calcular() {
+            // Obter valores de entrada
+            const nome = document.getElementById('nome').value;
+            const dataNascimento = document.getElementById('dataNascimento').value;
+            const sexo = document.getElementById('sexo').value;
+            const peso = parseFloat(document.getElementById('peso').value);
+            const altura = parseFloat(document.getElementById('altura').value);
+            const aorta = parseFloat(document.getElementById('aorta').value);
+            const atrioEsquerdo = parseFloat(document.getElementById('atrioEsquerdo').value);
+            const diamDiastFinalVE = parseFloat(document.getElementById('diamDiastFinalVE').value);
+            const diamSistFinal = parseFloat(document.getElementById('diamSistFinal').value);
+            const espDiastSepto = parseFloat(document.getElementById('espDiastSepto').value);
+            const espDiastPPVE = parseFloat(document.getElementById('espDiastPPVE').value);
+            
+            // Cálculos
+            
+            // Superfície Corporal (m²) - Fórmula de DuBois
+            const superficieCorporal = 0.007184 * Math.pow(altura, 0.725) * Math.pow(peso, 0.425);
+            
+            // Volume Diastólico Final pela fórmula de Teichholz
+            // Ajustando a fórmula para corresponder aos exemplos da segunda imagem
+            const volumeDiastFinal = Math.round(7 * Math.pow(diamDiastFinalVE / 10, 3) / (2.4 + diamDiastFinalVE / 10));
+            
+            // Volume Sistólico pela fórmula de Teichholz
+            const volumeSistolico = Math.round(7 * Math.pow(diamSistFinal / 10, 3) / (2.4 + diamSistFinal / 10));
+            
+            // Volume Ejetado
+            const volumeEjetado = volumeDiastFinal - volumeSistolico;
+            
+            // Fração de Ejeção
+            const fracaoEjecao = Math.round((volumeEjetado / volumeDiastFinal) * 100);
+            
+            // Percent Encurtamento Cavidade
+            const percentEncurtCavidade = Math.round(((diamDiastFinalVE - diamSistFinal) / diamDiastFinalVE) * 100);
+            
+            // Massa do VE pela fórmula de Devereux ajustada
+            const massaVE = calcularMassaVE(diamDiastFinalVE, espDiastSepto, espDiastPPVE);
+            
+            // Índice de Massa do VE
+            const indiceMassaVE = calcularIndiceMassaVE(massaVE, superficieCorporal);
+            
+            // Relação Volume / Massa
+            const relacaoVolumeMassa = calcularRelacaoVolumeMassa(volumeDiastFinal, massaVE);
+            
+            // Espessura Relativa da Parede
+            // Formatando para corresponder à segunda imagem (0.25)
+            const espRelaParede = ((2 * espDiastPPVE) / diamDiastFinalVE).toFixed(2);
+            
+            // Exibir resultados na tabela
+            document.getElementById('result_peso').textContent = peso + ' Kg';
+            document.getElementById('result_altura').textContent = altura + ' cm';
+            document.getElementById('result_superficieCorporal').textContent = superficieCorporal.toFixed(3) + ' m²';
+            document.getElementById('result_aorta').textContent = aorta + ' mm';
+            document.getElementById('result_atrioEsquerdo').textContent = atrioEsquerdo + ' mm';
+            document.getElementById('result_diamDiastFinalVE').textContent = diamDiastFinalVE + ' mm';
+            document.getElementById('result_volumeDiastFinal').textContent = volumeDiastFinal + ' ml';
+            document.getElementById('result_diamSistFinal').textContent = diamSistFinal + ' mm';
+            document.getElementById('result_volumeSistolico').textContent = volumeSistolico + ' ml';
+            document.getElementById('result_espDiastSepto').textContent = espDiastSepto + ' mm';
+            document.getElementById('result_espDiastPPVE').textContent = espDiastPPVE + ' mm';
+            document.getElementById('result_massaVE').textContent = massaVE + ' g';
+            document.getElementById('result_indiceMassaVE').textContent = indiceMassaVE + ' g/m²';
+            document.getElementById('result_relacaoVolumeMassa').textContent = relacaoVolumeMassa + ' ml/g';
+            document.getElementById('result_volumeEjetado').textContent = volumeEjetado + ' ml';
+            document.getElementById('result_fracaoEjecao').textContent = fracaoEjecao + ' %';
+            document.getElementById('result_percentEncurtCavidade').textContent = percentEncurtCavidade + ' %';
+            document.getElementById('result_espRelaParede').textContent = espRelaParede;
+        }
+        
+        // Função para analisar dados e retornar conclusões textuais
+        function analisarDados() {
+            const conclusoes = {};
+            
+            // Obter valores calculados
+            const aorta = parseFloat(document.getElementById('aorta').value);
+            const atrioEsquerdo = parseFloat(document.getElementById('atrioEsquerdo').value);
+            const diamDiastFinalVE = parseFloat(document.getElementById('diamDiastFinalVE').value);
+            const fracaoEjecao = parseInt(document.getElementById('result_fracaoEjecao').textContent);
+            const espDiastSepto = parseFloat(document.getElementById('espDiastSepto').value);
+            const espDiastPPVE = parseFloat(document.getElementById('espDiastPPVE').value);
+            const sexo = document.getElementById('sexo').value;
+            
+            // Valores dos campos adicionais
+            conclusoes.posicao = "em decúbito lateral esquerdo"; // Valor padrão, campo removido
+            
+            // Valva Mitral
+            conclusoes.aspectoMitral = document.getElementById('aspectoMitral').value;
+            conclusoes.refluxoMitral = document.getElementById('refluxoMitral').value;
+            
+            // Valva Aórtica
+            conclusoes.aspectoAortica = document.getElementById('aspectoAortica').value;
+            conclusoes.refluxoAortico = document.getElementById('refluxoAortico').value;
+            
+            // Valva Pulmonar
+            conclusoes.aspectoPulmonar = document.getElementById('aspectoPulmonar').value;
+            conclusoes.refluxoPulmonar = document.getElementById('refluxoPulmonar').value;
+            
+            // Valva Tricúspide
+            conclusoes.aspectoTricuspide = document.getElementById('aspectoTricuspide').value;
+            conclusoes.refluxoTricuspide = document.getElementById('refluxoTricuspide').value;
+            
+            // Parâmetros específicos da tricúspide
+            const velocidadeTricuspide = parseFloat(document.getElementById('velocidadeTricuspide').value) || 0;
+            const gradientePSAP = parseFloat(document.getElementById('gradientePSAP').value) || 0;
+            
+            if (velocidadeTricuspide > 0) {
+                conclusoes.velocidadeTricuspide = `Velocidade do refluxo tricúspide: ${velocidadeTricuspide.toFixed(1)} m/s.`;
+            } else {
+                conclusoes.velocidadeTricuspide = "";
+            }
+            
+            if (gradientePSAP > 0) {
+                conclusoes.gradientePSAP = `Gradiente VD/AD: ${gradientePSAP} mmHg.`;
+            } else {
+                conclusoes.gradientePSAP = "";
+            }
+            
+            conclusoes.pericardio = "normal"; // Valor padrão, campo removido
+            
+            // Mapeamento de aspecto para texto no laudo
+            const aspectoToTexto = {
+                normal: "normais",
+                espessada: "espessadas",
+                calcificada: "calcificadas"
+            };
+            
+            // Gerar descrições detalhadas das válvulas
+            
+            // Valva Mitral
+            if (conclusoes.aspectoMitral === "normal") {
+                conclusoes.descricaoMitral = "Valva mitral com abertura e mobilidade conservadas.";
+            } else if (conclusoes.aspectoMitral === "espessada") {
+                conclusoes.descricaoMitral = "Valva mitral com espessamento em seus folhetos.";
+            } else if (conclusoes.aspectoMitral === "calcificada") {
+                conclusoes.descricaoMitral = "Valva mitral com espessamento e pontos de calcificação em seus folhetos.";
+            }
+            
+            if (conclusoes.refluxoMitral !== "Ausência de refluxo mitral.") {
+                // Extrair o grau do refluxo da string
+                const grauRefluxo = conclusoes.refluxoMitral.match(/Refluxo mitral (.*)\./);
+                if (grauRefluxo && grauRefluxo[1]) {
+                    conclusoes.descricaoMitral += " Colordoppler registrou refluxo " + grauRefluxo[1].toLowerCase() + ".";
+                }
+            }
+            
+            // Valva Aórtica
+            if (conclusoes.aspectoAortica === "normal") {
+                conclusoes.descricaoAortica = "Valva aórtica com abertura e mobilidade conservadas.";
+            } else if (conclusoes.aspectoAortica === "espessada") {
+                conclusoes.descricaoAortica = "Valva aórtica com espessamento em seus folhetos.";
+            } else if (conclusoes.aspectoAortica === "calcificada") {
+                conclusoes.descricaoAortica = "Valva aórtica com espessamento e pontos de calcificação em seus folhetos.";
+            }
+            
+            if (conclusoes.refluxoAortico !== "Ausência de refluxo aórtico.") {
+                // Extrair o grau do refluxo da string
+                const grauRefluxo = conclusoes.refluxoAortico.match(/Refluxo aórtico (.*)\./);
+                if (grauRefluxo && grauRefluxo[1]) {
+                    conclusoes.descricaoAortica += " Colordoppler registrou refluxo " + grauRefluxo[1].toLowerCase() + ".";
+                }
+            }
+            
+            // Valva Pulmonar
+            if (conclusoes.aspectoPulmonar === "normal") {
+                conclusoes.descricaoPulmonar = "Valva pulmonar com abertura e mobilidade conservadas.";
+            } else if (conclusoes.aspectoPulmonar === "espessada") {
+                conclusoes.descricaoPulmonar = "Valva pulmonar com espessamento em seus folhetos.";
+            } else if (conclusoes.aspectoPulmonar === "calcificada") {
+                conclusoes.descricaoPulmonar = "Valva pulmonar com espessamento e pontos de calcificação em seus folhetos.";
+            }
+            
+            if (conclusoes.refluxoPulmonar !== "Ausência de refluxo pulmonar.") {
+                // Extrair o grau do refluxo da string
+                const grauRefluxo = conclusoes.refluxoPulmonar.match(/Refluxo pulmonar (.*)\./);
+                if (grauRefluxo && grauRefluxo[1]) {
+                    conclusoes.descricaoPulmonar += " Colordoppler registrou refluxo " + grauRefluxo[1].toLowerCase() + ".";
+                }
+            }
+            
+            // Valva Tricúspide
+            if (conclusoes.aspectoTricuspide === "normal") {
+                conclusoes.descricaoTricuspide = "Valva tricúspide com abertura conservada.";
+            } else if (conclusoes.aspectoTricuspide === "espessada") {
+                conclusoes.descricaoTricuspide = "Valva tricúspide com espessamento em seus folhetos.";
+            } else if (conclusoes.aspectoTricuspide === "calcificada") {
+                conclusoes.descricaoTricuspide = "Valva tricúspide com espessamento e pontos de calcificação em seus folhetos.";
+            }
+            
+            if (conclusoes.refluxoTricuspide !== "Ausência de refluxo tricúspide.") {
+                // Extrair o grau do refluxo da string
+                const grauRefluxo = conclusoes.refluxoTricuspide.match(/Refluxo tricúspide (.*)\./);
+                if (grauRefluxo && grauRefluxo[1]) {
+                    let textoRefluxo = ` Colordoppler registrou refluxo ${grauRefluxo[1].toLowerCase()}`;
+                    
+                    // Adicionar informações de velocidade e gradiente quando disponíveis
+                    if (velocidadeTricuspide > 0) {
+                        // Formatar velocidade para usar vírgula como separador decimal
+                        const velocidadeFormatada = velocidadeTricuspide.toFixed(1).replace('.', ',');
+                        
+                        if (gradientePSAP > 0) {
+                            // Se temos velocidade e gradiente
+                            textoRefluxo += ` (velocidade ${velocidadeFormatada} m/s, gradiente VD/AD aproximado de ${gradientePSAP} mmHg).`;
+                            
+                            // Calcular PSAP estimada: gradiente VD/AD + 5 mmHg (estimativa de pressão atrial)
+                            const psapEstimada = gradientePSAP + 5;
+                            conclusoes.observacaoPSAP = `Obs: Valor estimado da pressão sistólica na artéria pulmonar de ${psapEstimada} mmHg (derivada do gradiente VD/AD).`;
+                        } else {
+                            // Se temos apenas velocidade
+                            textoRefluxo += ` (velocidade ${velocidadeFormatada} m/s).`;
+                        }
+                    } else {
+                        textoRefluxo += ".";
+                    }
+                    
+                    conclusoes.descricaoTricuspide += textoRefluxo;
+                }
+            }
+            
+            // Adicionar valores padrão para campos
+            conclusoes.valvaMitral = aspectoToTexto[conclusoes.aspectoMitral] || "normais";
+            conclusoes.valvaTricuspide = aspectoToTexto[conclusoes.aspectoTricuspide] || "normal";
+            conclusoes.valvaAortica = aspectoToTexto[conclusoes.aspectoAortica] || "normais";
+            conclusoes.valvaPulmonar = aspectoToTexto[conclusoes.aspectoPulmonar] || "normais";
+            conclusoes.sistolicoVD = "preservado";
+            
+            // Adicionar novamente a variável aortaAscendente
+            if (aorta <= 37) {
+                conclusoes.raizAorta = "normal";
+            } else if (aorta <= 45) {
+                conclusoes.raizAorta = "discretamente dilatada";
+            } else {
+                conclusoes.raizAorta = "dilatada";
+            }
+            
+            // Análise das cavidades cardíacas
+            if (atrioEsquerdo <= 40 && diamDiastFinalVE <= 56) {
+                conclusoes.cavidades = "normais";
+            } else if (atrioEsquerdo <= 45 && diamDiastFinalVE <= 60) {
+                conclusoes.cavidades = "discretamente aumentadas";
+            } else {
+                conclusoes.cavidades = "aumentadas";
+            }
+            
+            // Classificação específica do átrio esquerdo
+            let classificacaoAE = "";
+            let atrioAumentado = false;
+            
+            // Usar volume atrial indexado se estiver disponível
+            const volumeAE = parseFloat(document.getElementById('volumeAE').value) || 0;
+            
+            if (volumeAE > 0) {
+                // Classificação baseada no volume do átrio esquerdo (ml/m²)
+                if (volumeAE <= 34) {
+                    classificacaoAE = "normal";
+                } else if (volumeAE >= 35 && volumeAE <= 41) {
+                    classificacaoAE = "discreto";
+                    atrioAumentado = true;
+                } else if (volumeAE >= 42 && volumeAE <= 48) {
+                    classificacaoAE = "moderado";
+                    atrioAumentado = true;
+                } else if (volumeAE > 48) {
+                    classificacaoAE = "importante";
+                    atrioAumentado = true;
+                }
+                
+                // Adiciona o valor numérico do volume para inclusão no laudo
+                conclusoes.volumeAtrialEsquerdo = volumeAE;
+            } else {
+                // Caso volume não esteja disponível, usar classificação por diâmetro
+                if (sexo === "M") { // Homens
+                    if (atrioEsquerdo <= 40) {
+                        classificacaoAE = "normal";
+                    } else if (atrioEsquerdo >= 41 && atrioEsquerdo <= 46) {
+                        classificacaoAE = "discreto";
+                        atrioAumentado = true;
+                    } else if (atrioEsquerdo >= 47 && atrioEsquerdo <= 52) {
+                        classificacaoAE = "moderado";
+                        atrioAumentado = true;
+                    } else if (atrioEsquerdo > 52) {
+                        classificacaoAE = "importante";
+                        atrioAumentado = true;
+                    }
+                } else { // Mulheres
+                    if (atrioEsquerdo <= 38) {
+                        classificacaoAE = "normal";
+                    } else if (atrioEsquerdo >= 39 && atrioEsquerdo <= 42) {
+                        classificacaoAE = "discreto";
+                        atrioAumentado = true;
+                    } else if (atrioEsquerdo >= 43 && atrioEsquerdo <= 46) {
+                        classificacaoAE = "moderado";
+                        atrioAumentado = true;
+                    } else if (atrioEsquerdo > 46) {
+                        classificacaoAE = "importante";
+                        atrioAumentado = true;
+                    }
+                }
+            }
+            
+            conclusoes.classificacaoAE = classificacaoAE;
+            conclusoes.atrioAumentado = atrioAumentado;
+            
+            // Classificação específica do ventrículo esquerdo baseada na tabela fornecida
+            let classificacaoVEDimensao = "";
+            let veAumentado = false;
+            
+            if (sexo === "M") { // Homens
+                if (diamDiastFinalVE <= 58) {
+                    classificacaoVEDimensao = "normal";
+                } else if (diamDiastFinalVE >= 59 && diamDiastFinalVE <= 63) {
+                    classificacaoVEDimensao = "discreto";
+                    veAumentado = true;
+                } else if (diamDiastFinalVE >= 64 && diamDiastFinalVE <= 68) {
+                    classificacaoVEDimensao = "moderado";
+                    veAumentado = true;
+                } else if (diamDiastFinalVE > 68) {
+                    classificacaoVEDimensao = "importante";
+                    veAumentado = true;
+                }
+            } else { // Mulheres
+                if (diamDiastFinalVE <= 52) {
+                    classificacaoVEDimensao = "normal";
+                } else if (diamDiastFinalVE >= 53 && diamDiastFinalVE <= 56) {
+                    classificacaoVEDimensao = "discreto";
+                    veAumentado = true;
+                } else if (diamDiastFinalVE >= 57 && diamDiastFinalVE <= 61) {
+                    classificacaoVEDimensao = "moderado";
+                    veAumentado = true;
+                } else if (diamDiastFinalVE > 61) {
+                    classificacaoVEDimensao = "importante";
+                    veAumentado = true;
+                }
+            }
+            
+            conclusoes.classificacaoVEDimensao = classificacaoVEDimensao;
+            conclusoes.veAumentado = veAumentado;
+            
+            // Análise da espessura do miocárdio
+            if (espDiastSepto <= 11 && espDiastPPVE <= 11) {
+                conclusoes.espessuraVE = "normal";
+            } else if (espDiastSepto <= 13 && espDiastPPVE <= 13) {
+                conclusoes.espessuraVE = "com hipertrofia discreta";
+            } else {
+                conclusoes.espessuraVE = "com hipertrofia";
+            }
+            
+            // Classificação do índice de massa do VE
+            const indiceMassaVEText = document.getElementById('result_indiceMassaVE').textContent;
+            const indiceMassaVE = parseInt(indiceMassaVEText.replace(/[^\d]/g, ''));
+            
+            const espRelaParedeText = document.getElementById('result_espRelaParede').textContent;
+            const espRelaParede = parseFloat(espRelaParedeText);
+            
+            let classificacaoVE = "";
+            
+            // Diferentes limites para homens e mulheres
+            const limiteNormal = sexo === "M" ? 115 : 95;
+            
+            if (indiceMassaVE <= limiteNormal) {
+                // Índice de massa normal
+                if (espRelaParede > 0.42) {
+                    classificacaoVE = "Remodelamento concêntrico do ventrículo esquerdo";
+                } else {
+                    classificacaoVE = "Espessura miocárdica do ventrículo esquerdo conservada";
+                }
+            } else {
+                // Índice de massa acima do normal
+                if (espRelaParede > 0.42) {
+                    classificacaoVE = "Hipertrofia concêntrica do ventrículo esquerdo";
+                } else {
+                    classificacaoVE = "Hipertrofia excêntrica do ventrículo esquerdo";
+                }
+            }
+            
+            conclusoes.classificacaoVE = classificacaoVE;
+            
+            // Análise da função sistólica do VE
+            let classificacaoSistolica = "";
+            const fracaoEjecaoVal = parseInt(fracaoEjecao);
+            
+            if (sexo === "M") { // Homens
+                if (fracaoEjecaoVal >= 52 && fracaoEjecaoVal <= 72) {
+                    classificacaoSistolica = "preservado";
+                } else if (fracaoEjecaoVal >= 41 && fracaoEjecaoVal < 52) {
+                    classificacaoSistolica = "com comprometimento sistólico discreto";
+                } else if (fracaoEjecaoVal >= 30 && fracaoEjecaoVal < 41) {
+                    classificacaoSistolica = "com comprometimento sistólico moderado";
+                } else if (fracaoEjecaoVal < 30) {
+                    classificacaoSistolica = "com comprometimento sistólico importante";
+            } else {
+                    classificacaoSistolica = "preservado"; // Valor padrão se fora da faixa
+                }
+            } else { // Mulheres
+                if (fracaoEjecaoVal >= 54 && fracaoEjecaoVal <= 74) {
+                    classificacaoSistolica = "preservado";
+                } else if (fracaoEjecaoVal >= 41 && fracaoEjecaoVal < 54) {
+                    classificacaoSistolica = "com comprometimento sistólico discreto";
+                } else if (fracaoEjecaoVal >= 30 && fracaoEjecaoVal < 41) {
+                    classificacaoSistolica = "com comprometimento sistólico moderado";
+                } else if (fracaoEjecaoVal < 30) {
+                    classificacaoSistolica = "com comprometimento sistólico importante";
+                } else {
+                    classificacaoSistolica = "preservado"; // Valor padrão se fora da faixa
+                }
+            }
+            
+            conclusoes.sistolicoVE = classificacaoSistolica;
+            
+            // Análise da função diastólica do VE
+            const ondaE = parseFloat(document.getElementById('ondaE').value) || 0;
+            const ondaA = parseFloat(document.getElementById('ondaA').value) || 0;
+            const tdiSeptal = parseFloat(document.getElementById('tdiSeptal').value) || 0;
+            const tdiLateral = parseFloat(document.getElementById('tdiLateral').value) || 0;
+            const velocidadeRT = parseFloat(document.getElementById('velocidadeRT').value) || 0;
+            const volumeAEAumentado = document.getElementById('volumeAEAumentado').checked;
+            const velocidadeRTAumentada = document.getElementById('velocidadeRTAumentada').checked;
+            
+            let relacaoEA = 0;
+            if (ondaA > 0) {
+                relacaoEA = (ondaE / ondaA).toFixed(1);
+            }
+            
+            // Cálculo da média de e' (velocidade septal e lateral)
+            const ePrimeMedia = tdiSeptal > 0 && tdiLateral > 0 ? ((tdiSeptal + tdiLateral) / 2).toFixed(1) : 0;
+            
+            // Cálculo da relação E/e'
+            let relacaoEePrime = 0;
+            if (ePrimeMedia > 0) {
+                relacaoEePrime = (ondaE / ePrimeMedia).toFixed(1);
+            }
+            
+            // Critérios para disfunção diastólica
+            let criterios = {
+                ePrimeBaixo: false,        // e' septal < 7 cm/s ou e' lateral < 10 cm/s
+                relacaoEePrimeAlta: false, // E/e' média > 14
+                volumeAEAlto: false,       // Volume AE indexado > 34 ml/m²
+                velocidadeRTAlta: false    // Velocidade RT > 2.8 m/s
+            };
+            
+            criterios.ePrimeBaixo = (tdiSeptal < 7 || tdiLateral < 10);
+            criterios.relacaoEePrimeAlta = (relacaoEePrime > 14);
+            criterios.volumeAEAlto = (volumeAE > 34 || volumeAEAumentado);
+            criterios.velocidadeRTAlta = (velocidadeRT > 2.8 || velocidadeRTAumentada);
+            
+            // Contagem de critérios positivos
+            let criteriosPositivos = 0;
+            for (const criterio in criterios) {
+                if (criterios[criterio]) {
+                    criteriosPositivos++;
+                }
+            }
+            
+            // Classificação da função diastólica baseada no algoritmo de Nagueh
+            let classificacaoDiastolica = "";
+            let descricaoDiastolica = "";
+            
+            // Verificar alterações segmentares - verificar se o texto indica alterações
+            const textoAlteracoesSegmentares = "Sem alterações segmentares da contratilidade.";
+            // Se o texto for diferente da afirmação padrão, significa que há alterações segmentares
+            const temAlteracoesSegmentares = conclusoes.alteracoesSegmentares !== textoAlteracoesSegmentares;
+            
+            // Verificar se o paciente tem hipertrofia ou fração de ejeção reduzida
+            const temHipertrofia = classificacaoVE.includes("Hipertrofia");
+            const temFEReduzida = fracaoEjecao < 50; // FE reduzida
+
+            // Seguindo o fluxograma para função diastólica
+            // PARTE A - Pacientes com FE normal (sem alterações cardíacas estruturais)
+            if (!temFEReduzida && !temHipertrofia && !temAlteracoesSegmentares) {
+                // Critérios para disfunção diastólica com FE preservada (conforme fluxograma parte A)
+                let criteriosPositivos = 0;
+                
+                if (tdiSeptal < 7 || tdiLateral < 10) criteriosPositivos++;  // e' septal < 7 ou e' lateral < 10
+                if (relacaoEePrime > 14) criteriosPositivos++;               // E/e' > 14
+                if (volumeAE > 34 || volumeAEAumentado) criteriosPositivos++; // Volume AE > 34
+                if (velocidadeRT > 2.8 || velocidadeRTAumentada) criteriosPositivos++; // RT > 2.8
+
+                // Categorias do fluxograma parte A
+                if (criteriosPositivos < 2) { // < 50% positivo
+                    classificacaoDiastolica = "normal";
+                    descricaoDiastolica = "Função diastólica do ventrículo esquerdo conservada ao doppler mitral espectral";
+                } else if (criteriosPositivos === 2) { // 50% positivo
+                    classificacaoDiastolica = "indeterminada";
+                    descricaoDiastolica = "Função diastólica indeterminada";
+                } else { // > 50% positivo (3-4 critérios positivos)
+                    classificacaoDiastolica = "grau II";
+                    descricaoDiastolica = "Disfunção diastólica do tipo II (Pseudonormal)";
+                }
+            } 
+            // PARTE B - Todos os outros casos (FE reduzida, hipertrofia, alterações segmentares)
+            else {
+                // Classificação baseada no fluxo mitral (Mitral Inflow) - Parte B do fluxograma
+                if (relacaoEA <= 0.8 && ondaE <= 50) {
+                    // Categoria 1: E/A ≤ 0.8 + E ≤ 50 cm/s
+                    classificacaoDiastolica = "grau I";
+                    descricaoDiastolica = "Disfunção diastólica do tipo I (alteração do relaxamento)";
+                } 
+                else if (relacaoEA >= 2) {
+                    // Categoria 3: E/A ≥ 2 
+                    classificacaoDiastolica = "grau III";
+                    descricaoDiastolica = "Disfunção diastólica do tipo III (Padrão restritivo)";
+                } 
+                else {
+                    // Categoria 2: E/A entre 0.8 e 2 - Avaliar 3 critérios adicionais
+                    let criteriosPositivos = 0;
+                    
+                    if (ePrimeMedia < 7) criteriosPositivos++; // e' média < 7
+                    if (relacaoEePrime > 14) criteriosPositivos++; // E/e' > 14
+                    if (volumeAE > 34 || volumeAEAumentado) criteriosPositivos++; // Volume AE > 34
+                    
+                    // Decisão baseada no número de critérios positivos
+                    if (criteriosPositivos <= 1) { // 0-1 critérios (negativos)
+                        classificacaoDiastolica = "grau I";
+                        descricaoDiastolica = "Disfunção diastólica do tipo I (alteração do relaxamento)";
+                    } else { // 2-3 critérios (positivos)
+                        classificacaoDiastolica = "grau II";
+                        descricaoDiastolica = "Disfunção diastólica do tipo II (Pseudonormal)";
+                    }
+                }
+            }
+            
+            // Se não houver dados suficientes para classificar
+            if (ondaE === 0 || ondaA === 0) {
+                classificacaoDiastolica = "normal";
+                descricaoDiastolica = "Função diastólica do ventrículo esquerdo conservada ao doppler mitral espectral";
+                conclusoes.parametrosDiastolicos = ""; // Não exibir parâmetros quando não houver dados
+            }
+            
+            conclusoes.classificacaoDiastolica = classificacaoDiastolica;
+            conclusoes.descricaoDiastolica = descricaoDiastolica;
+            
+            // Formatando uma descrição detalhada da função diastólica
+            if (classificacaoDiastolica !== "não avaliada") {
+                let parametrosDiastolicos = [];
+                
+                if (classificacaoDiastolica === "normal" && relacaoEA > 0 && relacaoEePrime > 0) {
+                    // Para função normal, mostrar apenas E/A e E/e'
+                    parametrosDiastolicos.push(`Relação E/A ${relacaoEA}`);
+                    parametrosDiastolicos.push(`E/e' ${relacaoEePrime}`);
+                    conclusoes.parametrosDiastolicos = parametrosDiastolicos.length > 0 ? ` - ${parametrosDiastolicos.join(" e ")}` : "";
+            } else {
+                    // Para outros casos, manter o formato original
+                    if (relacaoEA > 0) {
+                        parametrosDiastolicos.push(`Relação E/A: ${relacaoEA}`);
+                    }
+                    
+                    if (relacaoEePrime > 0) {
+                        parametrosDiastolicos.push(`Relação E/e': ${relacaoEePrime}`);
+                    }
+                    
+                    if (ePrimeMedia > 0) {
+                        parametrosDiastolicos.push(`e' média: ${ePrimeMedia} cm/s`);
+                    }
+                    
+                    conclusoes.parametrosDiastolicos = parametrosDiastolicos.length > 0 ? ` (${parametrosDiastolicos.join(", ")})` : "";
+                }
+            } else {
+                conclusoes.parametrosDiastolicos = "";
+            }
+            
+            conclusoes.diastolicoVE = descricaoDiastolica;
+            
+            // Outros campos padrão
+            conclusoes.alteracoesSegmentares = "Sem alterações segmentares da contratilidade.";
+            conclusoes.refluxoPulmonar = "Sem refluxo pulmonar.";
+            conclusoes.fluxos = "normais";
+            
+            // Opinião geral com base nas análises
+            let opiniao1 = "";
+            let opiniao2 = "";
+
+            // Verificar se tudo está normal
+            const sistolicoNormal = conclusoes.sistolicoVE === "preservado";
+            const diastolicoNormal = classificacaoDiastolica === "normal";
+            const aorticaNormal = conclusoes.aspectoAortica === "normal" && conclusoes.refluxoAortico === "Ausência de refluxo aórtico.";
+            const mitralNormal = conclusoes.aspectoMitral === "normal" && conclusoes.refluxoMitral === "Ausência de refluxo mitral.";
+            const pulmonarNormal = conclusoes.aspectoPulmonar === "normal" && conclusoes.refluxoPulmonar === "Ausência de refluxo pulmonar.";
+            const tricuspideNormal = conclusoes.aspectoTricuspide === "normal" && conclusoes.refluxoTricuspide === "Ausência de refluxo tricúspide.";
+            const aortaNormal = conclusoes.raizAorta === "normal";
+            const cavNormais = !conclusoes.veAumentado && !conclusoes.atrioAumentado;
+
+            const tudoNormal = sistolicoNormal && diastolicoNormal && 
+                               aorticaNormal && mitralNormal && 
+                               pulmonarNormal && tricuspideNormal &&
+                               aortaNormal && cavNormais;
+
+            if (tudoNormal) {
+                opiniao1 = "Ecocardiograma compatível com a normalidade.";
+            } else {
+                // Construir opinião baseada nas alterações
+                let frases = [];
+                
+                // 1. Se houver aumento de cavidades, incluir na opinião
+                if (conclusoes.veAumentado || conclusoes.atrioAumentado) {
+                    frases.push("Cavidades cardíacas esquerdas com dimensões aumentadas");
+                }
+                
+                // 2. Frase sobre o ventrículo esquerdo (sistólico)
+                let fraseVE = `Ventrículo esquerdo com desempenho sistólico ${conclusoes.sistolicoVE}`;
+                frases.push(fraseVE);
+                
+                // 3. Processar refluxos
+                // Categorizar refluxos por gravidade
+                let refluxosMinimos = [];
+                let refluxosDiscretos = [];
+                let refluxosModerados = [];
+                let refluxosImportantes = [];
+                
+                // Verificar refluxos valvares e categorizar
+                if (!mitralNormal && conclusoes.refluxoMitral !== "Ausência de refluxo mitral.") {
+                    const match = conclusoes.refluxoMitral.match(/Refluxo mitral (.*)\./);
+                    if (match) {
+                        const grau = match[1].toLowerCase();
+                        if (grau === "mínimo") refluxosMinimos.push("mitral");
+                        else if (grau === "discreto") refluxosDiscretos.push("mitral");
+                        else if (grau === "moderado") refluxosModerados.push("mitral");
+                        else if (grau === "importante") refluxosImportantes.push("mitral");
+                    }
+                }
+                
+                if (!aorticaNormal && conclusoes.refluxoAortico !== "Ausência de refluxo aórtico.") {
+                    const match = conclusoes.refluxoAortico.match(/Refluxo aórtico (.*)\./);
+                    if (match) {
+                        const grau = match[1].toLowerCase();
+                        if (grau === "mínimo") refluxosMinimos.push("aórtico");
+                        else if (grau === "discreto") refluxosDiscretos.push("aórtico");
+                        else if (grau === "moderado") refluxosModerados.push("aórtico");
+                        else if (grau === "importante") refluxosImportantes.push("aórtico");
+                    }
+                }
+                
+                if (!tricuspideNormal && conclusoes.refluxoTricuspide !== "Ausência de refluxo tricúspide.") {
+                    const match = conclusoes.refluxoTricuspide.match(/Refluxo tricúspide (.*)\./);
+                    if (match) {
+                        const grau = match[1].toLowerCase();
+                        if (grau === "mínimo") refluxosMinimos.push("tricúspide");
+                        else if (grau === "discreto") refluxosDiscretos.push("tricúspide");
+                        else if (grau === "moderado") refluxosModerados.push("tricúspide");
+                        else if (grau === "importante") refluxosImportantes.push("tricúspide");
+                    }
+                }
+                
+                if (!pulmonarNormal && conclusoes.refluxoPulmonar !== "Ausência de refluxo pulmonar.") {
+                    const match = conclusoes.refluxoPulmonar.match(/Refluxo pulmonar (.*)\./);
+                    if (match) {
+                        const grau = match[1].toLowerCase();
+                        if (grau === "mínimo") refluxosMinimos.push("pulmonar");
+                        else if (grau === "discreto") refluxosDiscretos.push("pulmonar");
+                        else if (grau === "moderado") refluxosModerados.push("pulmonar");
+                        else if (grau === "importante") refluxosImportantes.push("pulmonar");
+                    }
+                }
+                
+                // Formatar frases para o sumário de refluxos na opinião
+                let temRefluxos = false;
+
+                // Verifica se há refluxos e seleciona a frase apropriada
+                if (refluxosMinimos.length > 0 || refluxosDiscretos.length > 0 || 
+                    refluxosModerados.length > 0 || refluxosImportantes.length > 0) {
+                    
+                    temRefluxos = true;
+                    // Verificar cada tipo de refluxo para incluir na opinião
+                    
+                    // Refluxos mínimos
+                    if (refluxosMinimos.length > 0) {
+                        const listaValvas = formatarListaValvas([...refluxosMinimos]);
+                        frases.push(`Refluxos valvares ${listaValvas} mínimos`);
+                    }
+                    
+                    // Refluxos discretos
+                    if (refluxosDiscretos.length > 0) {
+                        const listaValvas = formatarListaValvas([...refluxosDiscretos]);
+                        frases.push(`Refluxos valvares ${listaValvas} discretos`);
+                    }
+                    
+                    // Refluxos moderados
+                    if (refluxosModerados.length > 0) {
+                        const listaValvas = formatarListaValvas([...refluxosModerados]);
+                        frases.push(`Refluxos valvares ${listaValvas} moderados`);
+                    }
+                    
+                    // Refluxos importantes
+                    if (refluxosImportantes.length > 0) {
+                        const listaValvas = formatarListaValvas([...refluxosImportantes]);
+                        frases.push(`Refluxos valvares ${listaValvas} importantes`);
+                    }
+                }
+                
+                // Se houver dilatação da aorta, incluir na opinião
+                if (!aortaNormal) {
+                    frases.push(`Raiz da aorta ${conclusoes.raizAorta}`);
+                }
+                
+                // Caso especial para aumento isolado do átrio esquerdo
+                if (conclusoes.atrioAumentado && !conclusoes.veAumentado) {
+                    // Substitui todas as frases com o formato específico
+                    frases = [];
+                    
+                    // Frase para desempenho sistólico (potencialmente com disfunção diastólica)
+                    let fraseSistolica = `Ventrículo esquerdo com desempenho sistólico ${conclusoes.sistolicoVE}`;
+                    
+                    // Adicionar informação de disfunção diastólica à frase sistólica se houver alteração diastólica
+                    if (conclusoes.classificacaoDiastolica !== "normal" && conclusoes.classificacaoDiastolica !== "indeterminada") {
+                        // Extrair o tipo/grau da disfunção diastólica a partir da descrição
+                        let tipoDisfuncao = "";
+                        if (conclusoes.classificacaoDiastolica === "grau I") {
+                            tipoDisfuncao = "tipo I";
+                        } else if (conclusoes.classificacaoDiastolica === "grau II") {
+                            tipoDisfuncao = "tipo II";
+                        } else if (conclusoes.classificacaoDiastolica === "grau III") {
+                            tipoDisfuncao = "tipo III";
+                        }
+                        
+                        if (tipoDisfuncao) {
+                            fraseSistolica += ` e disfunção diastólica ${tipoDisfuncao}`;
+                        }
+                    }
+                    
+                    frases.push(fraseSistolica);
+                    
+                    // Usa o grau de aumento (discreto/moderado/importante)
+                    let grauAumento = conclusoes.classificacaoAE;
+                    // Não converte mais "importante" para "grave", mantém como "importante"
+                    frases.push(`Aumento atrial esquerdo ${grauAumento}`);
+                    
+                    // Se houver refluxos valvares significativos, adicionar como terceira linha
+                    if (temRefluxos) {
+                        let frasesRefluxos = [];
+                        
+                        // Construir frases para refluxos na opinião
+                        if (refluxosMinimos.length > 0) {
+                            const listaValvas = formatarListaValvas([...refluxosMinimos]);
+                            frasesRefluxos.push(`Refluxos valvares ${listaValvas} mínimos`);
+                        }
+                        
+                        if (refluxosDiscretos.length > 0) {
+                            const listaValvas = formatarListaValvas([...refluxosDiscretos]);
+                            frasesRefluxos.push(`Refluxos valvares ${listaValvas} discretos`);
+                        }
+                        
+                        if (refluxosModerados.length > 0) {
+                            const listaValvas = formatarListaValvas([...refluxosModerados]);
+                            frasesRefluxos.push(`Refluxos valvares ${listaValvas} moderados`);
+                        }
+                        
+                        if (refluxosImportantes.length > 0) {
+                            const listaValvas = formatarListaValvas([...refluxosImportantes]);
+                            frasesRefluxos.push(`Refluxos valvares ${listaValvas} importantes`);
+                        }
+                        
+                        // Adicionar frases de refluxos se houver
+                        if (frasesRefluxos.length > 0) {
+                            frases = frases.concat(frasesRefluxos);
+                        }
+                    }
+                } else {
+                    // Caso padrão (não é aumento isolado do átrio)
+                    // Reorganiza as frases para seguir o formato solicitado
+                    let frasesReorganizadas = [];
+                    
+                    // 1. Se houver aumento de cavidades, incluir como primeira frase
+                    if (conclusoes.veAumentado || conclusoes.atrioAumentado) {
+                        frasesReorganizadas.push("Cavidades cardíacas esquerdas com dimensões aumentadas");
+                    }
+                    
+                    // 2. Frase sobre o desempenho sistólico como segunda frase
+                    // Verificar se há disfunção diastólica e adicionar na mesma linha se necessário
+                    let fraseSistolica = `Ventrículo esquerdo com desempenho sistólico ${conclusoes.sistolicoVE}`;
+                    
+                    // Adicionar informação de disfunção diastólica à frase sistólica se houver alteração diastólica
+                    if (conclusoes.classificacaoDiastolica !== "normal" && conclusoes.classificacaoDiastolica !== "indeterminada") {
+                        // Extrair o tipo/grau da disfunção diastólica a partir da descrição
+                        let tipoDisfuncao = "";
+                        if (conclusoes.classificacaoDiastolica === "grau I") {
+                            tipoDisfuncao = "tipo I";
+                        } else if (conclusoes.classificacaoDiastolica === "grau II") {
+                            tipoDisfuncao = "tipo II";
+                        } else if (conclusoes.classificacaoDiastolica === "grau III") {
+                            tipoDisfuncao = "tipo III";
+                        }
+                        
+                        if (tipoDisfuncao) {
+                            fraseSistolica += ` e disfunção diastólica ${tipoDisfuncao}`;
+                        }
+                    }
+                    
+                    frasesReorganizadas.push(fraseSistolica);
+                    
+                    // 3. Adicionar o padrão geométrico do ventrículo esquerdo logo após o desempenho sistólico
+                    if (conclusoes.classificacaoVE.includes("Hipertrofia") || conclusoes.classificacaoVE.includes("Remodelamento")) {
+                        frasesReorganizadas.push(conclusoes.classificacaoVE);
+                    }
+                    
+                    // 4. Incluir refluxos valvares por último
+                    if (temRefluxos) {
+                        if (refluxosMinimos.length > 0) {
+                            const listaValvas = formatarListaValvas([...refluxosMinimos]);
+                            frasesReorganizadas.push(`Refluxos valvares ${listaValvas} mínimos`);
+                        }
+                        
+                        if (refluxosDiscretos.length > 0) {
+                            const listaValvas = formatarListaValvas([...refluxosDiscretos]);
+                            frasesReorganizadas.push(`Refluxos valvares ${listaValvas} discretos`);
+                        }
+                        
+                        if (refluxosModerados.length > 0) {
+                            const listaValvas = formatarListaValvas([...refluxosModerados]);
+                            frasesReorganizadas.push(`Refluxos valvares ${listaValvas} moderados`);
+                        }
+                        
+                        if (refluxosImportantes.length > 0) {
+                            const listaValvas = formatarListaValvas([...refluxosImportantes]);
+                            frasesReorganizadas.push(`Refluxos valvares ${listaValvas} importantes`);
+                        }
+                    }
+                    
+                    // 5. Substituir as frases originais pelas reorganizadas
+                    frases = frasesReorganizadas;
+                }
+                
+                // Juntar todas as frases para a opinião
+                opiniao1 = frases.join(".\n") + ".";
+                opiniao2 = "";  // Não precisamos de opiniao2 neste formato
+                
+                // Construir frases para refluxos (mantém o comportamento original para o corpo do laudo)
+                let frasesRefluxos = [];
+                
+                // Função auxiliar para formatar lista de valvas
+                function formatarListaValvas(valvas) {
+                    if (valvas.length === 1) return valvas[0];
+                    if (valvas.length === 2) return `${valvas[0]} e ${valvas[1]}`;
+                    
+                    // Para 3 ou 4 valvas: "a, b, c e d"
+                    const ultimaValva = valvas.pop();
+                    return `${valvas.join(', ')} e ${ultimaValva}`;
+                }
+                
+                // Refluxos mínimos - agrupar até 4
+                if (refluxosMinimos.length > 0 && refluxosMinimos.length <= 4) {
+                    if (refluxosMinimos.length === 1) {
+                        frasesRefluxos.push(`Refluxo valvar ${refluxosMinimos[0]} mínimo.`);
+                    } else {
+                        const listaValvas = formatarListaValvas([...refluxosMinimos]);
+                        frasesRefluxos.push(`Refluxos valvares ${listaValvas} mínimos.`);
+                    }
+                } else if (refluxosMinimos.length > 4) {
+                    // Se houver mais de 4, listar individualmente
+                    refluxosMinimos.forEach(valva => {
+                        frasesRefluxos.push(`Refluxo valvar ${valva} mínimo.`);
+                    });
+                }
+                
+                // Refluxos discretos - agrupar até 4
+                if (refluxosDiscretos.length > 0 && refluxosDiscretos.length <= 4) {
+                    if (refluxosDiscretos.length === 1) {
+                        frasesRefluxos.push(`Refluxo valvar ${refluxosDiscretos[0]} discreto.`);
+                    } else {
+                        const listaValvas = formatarListaValvas([...refluxosDiscretos]);
+                        frasesRefluxos.push(`Refluxos valvares ${listaValvas} discretos.`);
+                    }
+                } else if (refluxosDiscretos.length > 4) {
+                    // Se houver mais de 4, listar individualmente
+                    refluxosDiscretos.forEach(valva => {
+                        frasesRefluxos.push(`Refluxo valvar ${valva} discreto.`);
+                    });
+                }
+                
+                // Refluxos moderados - sempre listar individualmente
+                refluxosModerados.forEach(valva => {
+                    frasesRefluxos.push(`Refluxo valvar ${valva} moderado.`);
+                });
+                
+                // Refluxos importantes - sempre listar individualmente
+                refluxosImportantes.forEach(valva => {
+                    frasesRefluxos.push(`Refluxo valvar ${valva} importante.`);
+                });
+                
+                // Verificar dilatação da aorta
+                if (!aortaNormal) {
+                    frasesRefluxos.push(`Raiz da aorta ${conclusoes.raizAorta}.`);
+                }
+                
+                // Manter este trecho para o corpo do laudo, mas não para a opinião quando já temos refluxos em opiniao1
+                if (frasesRefluxos.length > 0 && !temRefluxos) {
+                    opiniao2 = frasesRefluxos.join(' ');
+                } else {
+                    opiniao2 = ""; // Garantir que opiniao2 esteja vazio quando já tivermos refluxos em opiniao1
+                }
+            }
+            
+            conclusoes.opiniao1 = opiniao1;
+            conclusoes.opiniao2 = opiniao2;
+            
+            return conclusoes;
+        }
+        
+        // Função para gerar o laudo
+        function gerarLaudo() {
+            // Primeiro, execute os cálculos para garantir que os resultados estejam atualizados
+            calcular();
+            
+            // Analisar dados e criar conclusões
+            const conclusoes = analisarDados();
+            
+            // Gerar texto do laudo usando template
+            let textoInicioLaudo = '';
+            
+            // Verificar se há aumento de AE, VE ou ambos para formatar conforme exemplo
+            if (conclusoes.veAumentado || conclusoes.atrioAumentado) {
+                let frases = [];
+                
+                // Se VE está aumentado, adicionar frase específica
+                if (conclusoes.veAumentado && conclusoes.atrioAumentado) {
+                    // Quando ambos estão aumentados
+                    frases.push(`Ventrículo esquerdo com ${conclusoes.classificacaoVEDimensao} aumento de seu diâmetro`);
+                    // Se temos volume do AE, usar a nova formatação
+                    if (conclusoes.volumeAtrialEsquerdo) {
+                        frases.push(`Átrio esquerdo com ${conclusoes.classificacaoAE} aumento de seu volume (${conclusoes.volumeAtrialEsquerdo} ml/m²)`);
+                    } else {
+                        frases.push(`Átrio esquerdo com ${conclusoes.classificacaoAE} aumento de seu diâmetro`);
+                    }
+                    frases.push("Cavidades cardíacas direitas com dimensões conservadas");
+                } else if (conclusoes.veAumentado) {
+                    // Somente ventrículo aumentado
+                    frases.push(`Ventrículo esquerdo com ${conclusoes.classificacaoVEDimensao} aumento de seu diâmetro`);
+                    frases.push("Demais cavidades cardíacas com dimensões conservadas");
+                } else if (conclusoes.atrioAumentado) {
+                    // Somente átrio aumentado - formato conforme o exemplo do usuário
+                    if (conclusoes.volumeAtrialEsquerdo) {
+                        frases.push(`Átrio esquerdo com ${conclusoes.classificacaoAE} aumento de seu volume (${conclusoes.volumeAtrialEsquerdo} ml/m²)`);
+                    } else {
+                        frases.push(`Átrio esquerdo com ${conclusoes.classificacaoAE} aumento de seu diâmetro`);
+                    }
+                    frases.push("Demais cavidades cardíacas com dimensões conservadas");
+                    frases.push(`Raiz da aorta com diâmetro ${conclusoes.raizAorta}`);
+                    frases.push("Espessura miocárdica do ventrículo esquerdo conservada");
+                }
+                
+                textoInicioLaudo = frases.join(".\n") + ".";
+            } else {
+                // Se não houver aumento de cavidades, verificar se temos o volume AE disponível para incluir
+                if (conclusoes.volumeAtrialEsquerdo) {
+                    textoInicioLaudo = `Cavidades cardíacas com dimensões ${conclusoes.cavidades}. Volume Atrial esquerdo (${conclusoes.volumeAtrialEsquerdo} ml/m²)`;
+                } else {
+                    textoInicioLaudo = `Cavidades cardíacas com dimensões ${conclusoes.cavidades}.`;
+                }
+            }
+            
+            // Se não tiver aumento isolado do átrio, continue com o formato padrão do laudo
+            let textoComplementarLaudo = '';
+            if (!conclusoes.atrioAumentado || conclusoes.veAumentado) {
+                textoComplementarLaudo = `Raiz da aorta com diâmetro ${conclusoes.raizAorta}.\n${conclusoes.classificacaoVE}.`;
+            }
+            
+            const textoLaudo = `${textoInicioLaudo}
+${textoComplementarLaudo}
+
+Desempenho sistólico do ventrículo esquerdo ${conclusoes.sistolicoVE}. ${conclusoes.alteracoesSegmentares}
+${conclusoes.descricaoDiastolica}${conclusoes.parametrosDiastolicos}.
+
+${conclusoes.descricaoMitral}
+${conclusoes.descricaoAortica}
+${conclusoes.descricaoPulmonar}
+${conclusoes.descricaoTricuspide}${conclusoes.observacaoPSAP ? '\n' + conclusoes.observacaoPSAP : ''}
+
+Demais fluxos transvalvares com velocidades ${conclusoes.fluxos} ao colordoppler.
+
+OPINIÃO
+${conclusoes.opiniao1}
+${conclusoes.opiniao2}
+
+Obs: A correta interpretação do resultado do exame depende de outros dados do paciente que só o médico assistente possui.`;
+            
+            // Exibir o laudo
+            document.getElementById('laudoTexto').value = textoLaudo;
+            document.getElementById('laudoArea').style.display = 'block';
+        }
+        
+        // Função para copiar o laudo para a área de transferência
+        function copiarLaudo() {
+            const textoLaudo = document.getElementById('laudoTexto');
+            textoLaudo.select();
+            document.execCommand('copy');
+            alert('Laudo copiado para a área de transferência!');
+        }
+        
+        // Função para imprimir o laudo
+        function imprimirLaudo() {
+            const conteudoLaudo = document.getElementById('laudoTexto').value;
+            
+            // Coletar dados para a tabela
+            const dados = {
+                nome: document.getElementById('nome').value || 'Não informado',
+                idade: calcularIdade(document.getElementById('dataNascimento').value) || 'Não informada',
+                sexo: document.getElementById('sexo').value === 'M' ? 'Masculino' : 'Feminino',
+                aorta: document.getElementById('aorta').value || '-',
+                atrioEsquerdo: document.getElementById('atrioEsquerdo').value || '-',
+                ddve: document.getElementById('diamDiastFinalVE').value || '-',
+                dsve: document.getElementById('diamSistFinal').value || '-',
+                septo: document.getElementById('espDiastSepto').value || '-',
+                ppve: document.getElementById('espDiastPPVE').value || '-',
+                fe: document.getElementById('resultadoFE') ? document.getElementById('resultadoFE').textContent : '-',
+                massa: document.getElementById('resultadoMassaVE') ? document.getElementById('resultadoMassaVE').textContent : '-',
+                volumeAE: document.getElementById('volumeAE').value || '-'
+            };
+            
+            // Dados para a segunda linha da tabela
+            const funcaoDiastolica = obterDadosFuncaoDiastolica();
+            
+            // Adicionar informações dos cálculos
+            const calculos = obterDadosCalculados();
+            
+            // Formatar o texto do laudo para HTML
+            // Primeiro substituímos as tags já existentes (se houver) por placeholders temporários
+            const textoFormatado = conteudoLaudo
+                .replace(/<strong>(.*?)<\/strong>/g, '###BOLD###$1###BOLD###')
+                .replace(/<em>(.*?)<\/em>/g, '###ITALIC###$1###ITALIC###')
+                .replace(/<u>(.*?)<\/u>/g, '###UNDERLINE###$1###UNDERLINE###');
+                
+            // Depois convertemos quebras de linha para <p> para melhor formatação
+            const paragrafos = textoFormatado.split('\n\n');
+            let htmlParagrafos = '';
+
+            // Processamos parágrafo por parágrafo para detectar a seção OPINIÃO
+            paragrafos.forEach(paragrafo => {
+                // Processar quebras de linha simples dentro do parágrafo
+                const linhas = paragrafo.split('\n');
+                const htmlLinhas = linhas.join('<br>');
+                
+                // Restaurar formatações
+                let conteudoHTML = htmlLinhas
+                    .replace(/###BOLD###(.*?)###BOLD###/g, '<strong>$1</strong>')
+                    .replace(/###ITALIC###(.*?)###ITALIC###/g, '<em>$1</em>')
+                    .replace(/###UNDERLINE###(.*?)###UNDERLINE###/g, '<u>$1</u>');
+                
+                // Verificar se é a seção OPINIÃO
+                if (conteudoHTML.includes("OPINIÃO") || conteudoHTML.includes("OPINIAO")) {
+                    htmlParagrafos += '<p class="opiniao">' + conteudoHTML + '</p>';
+                } else {
+                    htmlParagrafos += '<p>' + conteudoHTML + '</p>';
+                }
+            });
+            
+            const janelaImpressao = window.open('', '_blank');
+            
+            janelaImpressao.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Laudo Ecocardiograma</title>
+                    <style>
+                        @media print {
+                            @page {
+                                size: A4;
+                                margin: 0.5cm;
+                            }
+                            body {
+                                -webkit-print-color-adjust: exact !important;
+                                print-color-adjust: exact !important;
+                            }
+                        }
+                        body {
+                            font-family: Arial, sans-serif;
+                            max-width: 800px;
+                            margin: 0 auto;
+                            padding: 10px;
+                            font-size: 11pt;
+                        }
+                        h1, h2 {
+                            margin-top: 10px;
+                            margin-bottom: 10px;
+                            color: #2c3e50;
+                            text-align: center;
+                        }
+                        h1 {
+                            font-size: 16pt;
+                        }
+                        h2 {
+                            font-size: 14pt;
+                            margin-top: 10px;
+                        }
+                        .info-paciente {
+                            margin-bottom: 25px;
+                            font-size: 12pt;
+                            line-height: 1.4;
+                            padding: 10px;
+                            background-color: #f9f9f9;
+                            border: 1px solid #eee;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-top: 10px;
+                            margin-bottom: 15px;
+                            font-size: 10pt;
+                        }
+                        table, th, td {
+                            border: 1px solid #ddd;
+                        }
+                        th, td {
+                            padding: 6px;
+                            text-align: left;
+                        }
+                        th {
+                            background-color: #f2f2f2;
+                            width: 25%;
+                        }
+                        .laudo-texto {
+                            margin-top: 15px;
+                            padding: 10px;
+                            line-height: 1.4;
+                            font-size: 11pt;
+                            border: 1px solid #ddd;
+                            background-color: #f9f9f9;
+                        }
+                        .laudo-texto p {
+                            margin: 0.6em 0;
+                        }
+                        .assinatura {
+                            margin-top: 60px;
+                            text-align: center;
+                        }
+                        .linha-assinatura {
+                            display: inline-block;
+                            width: 200px;
+                            border-top: 1px solid #000;
+                            margin: 0 auto;
+                            text-align: center;
+                            padding-top: 5px;
+                            font-size: 9pt;
+                        }
+                        .rodape {
+                            margin-top: 10px;
+                            font-size: 8pt;
+                            text-align: center;
+                            color: #666;
+                        }
+                        .opiniao {
+                            font-weight: bold;
+                            margin-top: 0.8em;
+                            color: #2c3e50;
+                            border-top: 1px solid #ddd;
+                            padding-top: 0.5em;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1>ECOCARDIOGRAMA TRANSTORÁCICO</h1>
+                    
+                    <div class="info-paciente">
+                        <strong>Nome:</strong> ${dados.nome} &nbsp;&nbsp; 
+                        <strong>Idade:</strong> ${dados.idade} &nbsp;&nbsp; 
+                        <strong>Sexo:</strong> ${dados.sexo} &nbsp;&nbsp;
+                        <strong>Data:</strong> ${new Date().toLocaleDateString('pt-BR')}
+                    </div>
+                    
+                    <h2>Resultados</h2>
+                    
+                    <table>
+                        <tr>
+                            <th>Parâmetro</th>
+                            <th>Valor</th>
+                            <th>Parâmetro</th>
+                            <th>Valor</th>
+                        </tr>
+                        <tr>
+                            <td>Aorta</td>
+                            <td>${dados.aorta} mm</td>
+                            <td>Átrio Esquerdo</td>
+                            <td>${dados.atrioEsquerdo} mm</td>
+                        </tr>
+                        <tr>
+                            <td>Diâm. Diast. Final do VE</td>
+                            <td>${dados.ddve} mm</td>
+                            <td>Diâm. Sist. Final</td>
+                            <td>${dados.dsve} mm</td>
+                        </tr>
+                        <tr>
+                            <td>Esp. Diast. do Septo</td>
+                            <td>${dados.septo} mm</td>
+                            <td>Esp. Diast. da PPVE</td>
+                            <td>${dados.ppve} mm</td>
+                        </tr>
+                        <tr>
+                            <td>Volume Diast. Final</td>
+                            <td>${calculos.volumeDiastFinal || '-'} ml</td>
+                            <td>Volume Sist. Final</td>
+                            <td>${calculos.volumeSistolico || '-'} ml</td>
+                        </tr>
+                        <tr>
+                            <td>Fração de Ejeção</td>
+                            <td>${calculos.fracaoEjecao || dados.fe}</td>
+                            <td>Massa do VE</td>
+                            <td>${calculos.massaVE || dados.massa}</td>
+                        </tr>
+                    </table>
+                    
+                    <h2>Laudo Médico</h2>
+                    <div class="laudo-texto">${htmlParagrafos}</div>
+                    
+                    <div class="assinatura">
+                        <div class="linha-assinatura">
+                            Médico(a) Responsável
+                        </div>
+                    </div>
+                    
+                </body>
+                </html>
+            `);
+            
+            janelaImpressao.document.close();
+            janelaImpressao.print();
+        }
+        
+        // Função para obter dados calculados da tabela de resultados
+        function obterDadosCalculados() {
+            return {
+                volumeDiastFinal: document.getElementById('result_volumeDiastFinal') ? document.getElementById('result_volumeDiastFinal').textContent.replace(' ml', '') : null,
+                volumeSistolico: document.getElementById('result_volumeSistolico') ? document.getElementById('result_volumeSistolico').textContent.replace(' ml', '') : null,
+                massaVE: document.getElementById('result_massaVE') ? document.getElementById('result_massaVE').textContent.replace(' g', '') : null,
+                indiceMassaVE: document.getElementById('result_indiceMassaVE') ? document.getElementById('result_indiceMassaVE').textContent.replace(' g/m²', '') : null,
+                fracaoEjecao: document.getElementById('result_fracaoEjecao') ? document.getElementById('result_fracaoEjecao').textContent : null,
+                percentEncurtCavidade: document.getElementById('result_percentEncurtCavidade') ? document.getElementById('result_percentEncurtCavidade').textContent : null,
+                espRelaParede: document.getElementById('result_espRelaParede') ? document.getElementById('result_espRelaParede').textContent : null
+            };
+        }
+        
+        // Função auxiliar para coletar dados da função diastólica
+        function obterDadosFuncaoDiastolica() {
+            const ondaE = document.getElementById('ondaE').value || '-';
+            const ondaA = document.getElementById('ondaA').value || '-';
+            const tdiSeptal = document.getElementById('tdiSeptal').value || '-';
+            const tdiLateral = document.getElementById('tdiLateral').value || '-';
+            const velocidadeRT = document.getElementById('velocidadeRT').value || '-';
+            
+            // Calcular relação E/A
+            let relacaoEA = '-';
+            if (ondaE && ondaA && ondaA !== '0') {
+                relacaoEA = (parseFloat(ondaE) / parseFloat(ondaA)).toFixed(2);
+            }
+            
+            // Calcular relação E/e'
+            let relacaoEe = '-';
+            if (ondaE && (tdiSeptal || tdiLateral)) {
+                const tdiMedio = tdiSeptal && tdiLateral ? 
+                    (parseFloat(tdiSeptal) + parseFloat(tdiLateral)) / 2 : 
+                    (parseFloat(tdiSeptal || tdiLateral));
+                    
+                if (tdiMedio !== 0) {
+                    relacaoEe = (parseFloat(ondaE) / tdiMedio).toFixed(2);
+                }
+            }
+            
+            return {
+                ondaE,
+                ondaA,
+                relacaoEA,
+                relacaoEe,
+                velocidadeRT
+            };
+        }
+        
+        // Função auxiliar para calcular idade a partir da data de nascimento
+        function calcularIdade(dataNascimento) {
+            if (!dataNascimento) return '';
+            
+            const hoje = new Date();
+            const nascimento = new Date(dataNascimento);
+            let idade = hoje.getFullYear() - nascimento.getFullYear();
+            const m = hoje.getMonth() - nascimento.getMonth();
+            
+            if (m < 0 || (m === 0 && hoje.getDate() < nascimento.getDate())) {
+                idade--;
+            }
+            
+            return idade + ' anos';
+        }
+        
+        // Função para alternar entre as abas
+        function changeTab(valve) {
+            // Esconder todos os painéis
+            document.querySelectorAll('.tab-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            
+            // Desativar todos os headers
+            document.querySelectorAll('.tab-header').forEach(header => {
+                header.classList.remove('active');
+            });
+            
+            // Ativar o painel correspondente
+            document.getElementById('panel-' + valve).classList.add('active');
+            
+            // Ativar o header correspondente
+            document.querySelector('.tab-header[data-valve="' + valve + '"]').classList.add('active');
+        }
+        
+        // Função para retrair/expandir seções
+        function toggleSection(header) {
+            header.classList.toggle('collapsed');
+            const content = header.nextElementSibling;
+            content.classList.toggle('collapsed');
+        }
+        
+        // Função para atualizar o status da valva
+        function updateValveStatus(valve) {
+            // Normaliza o nome da valva para minúsculo
+            const valveName = valve.toLowerCase();
+            
+            // Obtém os elementos usando o nome normalizado
+            const aspectoId = 'aspecto' + capitalize(valveName);
+            const refluxoId = 'refluxo' + capitalize(valveName);
+            
+            const aspecto = document.getElementById(aspectoId).value;
+            const refluxoSelect = document.getElementById(refluxoId);
+            const refluxoText = refluxoSelect.options[refluxoSelect.selectedIndex].text;
+            
+            // Determinar o status (cor)
+            let statusColor = '#4CAF50'; // verde = normal
+            
+            if (aspecto !== 'normal' || refluxoText !== 'Ausente') {
+                if (aspecto === 'calcificada' || refluxoText === 'Moderado' || refluxoText === 'Importante') {
+                    statusColor = '#F44336'; // vermelho = alteração significativa
+                } else {
+                    statusColor = '#FF9800'; // laranja = alteração leve
+                }
+            }
+            
+            // Atualizar a cor do status - garantindo uso do nome normalizado
+            document.getElementById('status-' + valveName).style.backgroundColor = statusColor;
+            document.getElementById('summary-status-' + valveName).style.backgroundColor = statusColor;
+            
+            // Atualizar o resumo
+            let summaryText = capitalize(aspecto);
+            if (refluxoText !== 'Ausente') {
+                summaryText += ' / ' + refluxoText;
+            }
+            document.getElementById('summary-' + valveName).textContent = summaryText;
+            
+            console.log(`Atualizando ${valveName}:`, {
+                aspecto: aspecto,
+                refluxo: refluxoText,
+                cor: statusColor,
+                elementoStatus: 'status-' + valveName,
+                elementoSummary: 'summary-status-' + valveName,
+                texto: summaryText
+            });
+        }
+        
+        // Função especial apenas para atualizar a valva aórtica
+        function atualizarValvaAortica() {
+            console.log("Função especial para aórtica sendo executada");
+            
+            // Pegar diretamente os valores
+            const aspecto = document.getElementById('aspectoAortica').value;
+            const refluxoSelect = document.getElementById('refluxoAortico');
+            const refluxoText = refluxoSelect.options[refluxoSelect.selectedIndex].text;
+            
+            // Determinar a cor do status
+            let statusColor = '#4CAF50'; // verde = normal
+            
+            if (aspecto !== 'normal' || refluxoText !== 'Ausente') {
+                if (aspecto === 'calcificada' || refluxoText === 'Moderado' || refluxoText === 'Importante') {
+                    statusColor = '#F44336'; // vermelho = alteração significativa
+                } else {
+                    statusColor = '#FF9800'; // laranja = alteração leve
+                }
+            }
+            
+            // Atualizar diretamente os elementos DOM
+            const statusDot = document.getElementById('status-aortica');
+            const summaryDot = document.getElementById('summary-status-aortica');
+            const summaryText = document.getElementById('summary-aortica');
+            
+            // Verificar se os elementos existem antes de modificá-los
+            if (statusDot) statusDot.style.backgroundColor = statusColor;
+            if (summaryDot) summaryDot.style.backgroundColor = statusColor;
+            
+            // Atualizar o texto resumo
+            let sumText = aspecto.charAt(0).toUpperCase() + aspecto.slice(1);
+            if (refluxoText !== 'Ausente') {
+                sumText += ' / ' + refluxoText;
+            }
+            if (summaryText) summaryText.textContent = sumText;
+            
+            console.log('Atualizando aórtica manualmente:', {
+                aspecto: aspecto,
+                refluxo: refluxoText,
+                cor: statusColor,
+                elementosEncontrados: {
+                    statusDot: !!statusDot,
+                    summaryDot: !!summaryDot,
+                    summaryText: !!summaryText
+                }
+            });
+        }
+        
+        // Função auxiliar para capitalizar a primeira letra
+        function capitalize(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+        
+        // Funções para formatação do texto do laudo
+        function formatarTexto(tipo) {
+            const laudoTexto = document.getElementById('laudoTexto');
+            const selecaoInicio = laudoTexto.selectionStart;
+            const selecaoFim = laudoTexto.selectionEnd;
+            const textoSelecionado = laudoTexto.value.substring(selecaoInicio, selecaoFim);
+            
+            if (textoSelecionado) {
+                let textoFormatado = '';
+                
+                switch(tipo) {
+                    case 'bold':
+                        textoFormatado = `<strong>${textoSelecionado}</strong>`;
+                        break;
+                    case 'italic':
+                        textoFormatado = `<em>${textoSelecionado}</em>`;
+                        break;
+                    case 'underline':
+                        textoFormatado = `<u>${textoSelecionado}</u>`;
+                        break;
+                    default:
+                        textoFormatado = textoSelecionado;
+                }
+                
+                const textoAntes = laudoTexto.value.substring(0, selecaoInicio);
+                const textoDepois = laudoTexto.value.substring(selecaoFim);
+                
+                laudoTexto.value = textoAntes + textoFormatado + textoDepois;
+            }
+        }
+
+        function limparFormatacao() {
+            const laudoTexto = document.getElementById('laudoTexto');
+            const textoAtual = laudoTexto.value;
+            
+            // Remove todas as tags HTML
+            const textoSemFormatacao = textoAtual.replace(/<[^>]*>/g, '');
+            
+            laudoTexto.value = textoSemFormatacao;
+        }
+        
+        // Inicializar os status das valvas
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar todas as valvas de forma padronizada, exceto a aórtica
+            ['mitral', 'tricuspide', 'pulmonar'].forEach(valve => {
+                updateValveStatus(valve);
+            });
+            
+            // Tratar a valva aórtica separadamente
+            atualizarValvaAortica();
+            
+            // Adicionar event listeners diretos para a valva aórtica
+            const aspectoAortica = document.getElementById('aspectoAortica');
+            const refluxoAortico = document.getElementById('refluxoAortico');
+            
+            if (aspectoAortica) {
+                aspectoAortica.addEventListener('change', atualizarValvaAortica);
+                console.log('Event listener adicionado para aspectoAortica');
+            }
+            
+            if (refluxoAortico) {
+                refluxoAortico.addEventListener('change', atualizarValvaAortica);
+                console.log('Event listener adicionado para refluxoAortico');
+            }
+            
+            // Adicionar event listeners para os campos de seleção das outras valvas
+            document.querySelectorAll('select[id^="aspecto"], select[id^="refluxo"]').forEach(select => {
+                // Ignorar elementos da valva aórtica que já têm listeners
+                if (select.id !== 'aspectoAortica' && select.id !== 'refluxoAortico') {
+                    select.addEventListener('change', function() {
+                        let valve = '';
+                        if (this.id.startsWith('aspecto')) {
+                            valve = this.id.substring(7).toLowerCase();
+                        } else if (this.id.startsWith('refluxo')) {
+                            valve = this.id.substring(7).toLowerCase();
+                        }
+                        
+                        if (valve) {
+                            updateValveStatus(valve);
+                            console.log(`Evento de mudança: ${this.id} -> ${valve}`);
+                        }
+                    });
+                }
+            });
+            
+            // Inicializar seções colapsáveis - apenas a primeira expandida
+            const sections = document.querySelectorAll('.collapsible-section');
+            for (let i = 1; i < sections.length; i++) {
+                const header = sections[i].querySelector('h2');
+                const content = sections[i].querySelector('.collapsible-content');
+                
+                header.classList.add('collapsed');
+                content.classList.add('collapsed');
+            }
+        });
+    </script>
+</body>
+</html> 
